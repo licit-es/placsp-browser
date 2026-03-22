@@ -29,6 +29,7 @@ cat \
   "$SCHEMA_DIR"/08_modifications.sql \
   "$SCHEMA_DIR"/09_etl.sql \
   "$SCHEMA_DIR"/10_catalog.sql \
+  "$SCHEMA_DIR"/11_api.sql \
 | psql "$DB_URL" --single-transaction --set ON_ERROR_STOP=on
 
 echo "Schema applied successfully."
