@@ -9,6 +9,16 @@ from pydantic import BaseModel, Field
 from api.schemas.resumen import LicitacionResumen
 
 
+class PeticionBusquedaEmpresas(BaseModel):
+    """Request body para busqueda de empresas adjudicatarias."""
+
+    q: str = Field(
+        min_length=2,
+        description="Texto de busqueda (nombre, NIF o ciudad).",
+    )
+    limite: int = Field(default=20, ge=1, le=100, description="Maximo de resultados.")
+
+
 class EmpresaResumen(BaseModel):
     """Resultado de busqueda de empresa adjudicataria."""
 

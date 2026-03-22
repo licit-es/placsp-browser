@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 
 from api.deps import get_conn
 from api.schemas import (
@@ -11,27 +11,19 @@ from api.schemas import (
     EmpresaResumen,
     EmpresaStats,
     LicitacionResumen,
+    PeticionBusquedaEmpresas,
 )
 
 router = APIRouter(tags=["Empresas"])
 
 
-@router.get(
+@router.post(
     "/empresas",
     response_model=list[EmpresaResumen],
     summary="Buscar empresas adjudicatarias",
 )
 async def buscar_empresas(
-    q: str = Query(
-        min_length=2,
-        description="Texto de busqueda (nombre, NIF o ciudad).",
-    ),
-    limite: int = Query(
-        default=20,
-        ge=1,
-        le=100,
-        description="Maximo de resultados.",
-    ),
+    body: PeticionBusquedaEmpresas,
     conn: asyncpg.Connection = Depends(get_conn),
 ) -> list[EmpresaResumen]:
     """Search companies by name, NIF or city."""
@@ -53,8 +45,8 @@ async def buscar_empresas(
         ORDER BY contratos DESC
         LIMIT $2
         """,
-        q,
-        limite,
+        body.q,
+        body.limite,
     )
     return [
         EmpresaResumen(
