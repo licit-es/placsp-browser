@@ -179,6 +179,7 @@ class TenderResultParser:
 
             identifier, name = detect_nif_swap(raw_identifier, name)
             identifier = normalize_nif(identifier)
+            name = name or ""
 
             address = find_first(wp, "PostalAddress")
 
