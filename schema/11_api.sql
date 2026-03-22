@@ -46,22 +46,32 @@ CREATE TABLE IF NOT EXISTS empresa (
 );
 
 -- Trigger: upsert empresa on every winning_party INSERT.
--- "Longest name wins" — picks the most complete spelling (S.L.U. etc.).
+-- Prefers non-UTE names; among same kind picks the longest (most complete).
 CREATE OR REPLACE FUNCTION empresa_upsert() RETURNS trigger AS $$
+DECLARE
+  _current text;
 BEGIN
   IF NEW.identifier IS NULL THEN
     RETURN NEW;
   END IF;
 
+  -- Try insert first; if row exists, conditionally update.
   INSERT INTO empresa (nif, nombre, ciudad, tipo)
   VALUES (NEW.identifier, NEW.name, NEW.city_name, NEW.company_type_code)
-  ON CONFLICT (nif) DO UPDATE SET
-    nombre = CASE WHEN length(EXCLUDED.nombre) > length(empresa.nombre)
-             THEN EXCLUDED.nombre ELSE empresa.nombre END,
-    ciudad = CASE WHEN length(EXCLUDED.nombre) > length(empresa.nombre)
-             THEN EXCLUDED.ciudad ELSE empresa.ciudad END,
-    tipo   = CASE WHEN length(EXCLUDED.nombre) > length(empresa.nombre)
-             THEN EXCLUDED.tipo ELSE empresa.tipo END;
+  ON CONFLICT (nif) DO NOTHING;
+
+  IF NOT FOUND THEN
+    SELECT nombre INTO _current FROM empresa WHERE nif = NEW.identifier;
+    -- Prefer non-UTE over UTE; among same kind prefer longer name.
+    IF (_current ~* '^U\.?T\.?E\.?\s' AND NEW.name !~* '^U\.?T\.?E\.?\s')
+       OR ((_current ~* '^U\.?T\.?E\.?\s') = (NEW.name ~* '^U\.?T\.?E\.?\s')
+           AND length(NEW.name) > length(_current))
+    THEN
+      UPDATE empresa
+      SET nombre = NEW.name, ciudad = NEW.city_name, tipo = NEW.company_type_code
+      WHERE nif = NEW.identifier;
+    END IF;
+  END IF;
 
   RETURN NEW;
 END $$ LANGUAGE plpgsql SET search_path = public;
@@ -299,7 +309,8 @@ JOIN winning_party wp ON wp.tender_result_id = tr.id
 LEFT JOIN contracting_party cp ON cp.id = cfs.contracting_party_id;
 
 -- =================================================================
--- EMPRESA INITIAL POPULATION (idempotent, picks longest name per NIF)
+-- EMPRESA INITIAL POPULATION
+-- Idempotent. Prefers non-UTE names, then longest.
 -- =================================================================
 
 INSERT INTO empresa (nif, nombre, ciudad, tipo)
@@ -307,5 +318,7 @@ SELECT DISTINCT ON (identifier)
   identifier, name, city_name, company_type_code
 FROM winning_party
 WHERE identifier IS NOT NULL
-ORDER BY identifier, length(name) DESC NULLS LAST
+ORDER BY identifier,
+  CASE WHEN name ~* '^U\.?T\.?E\.?\s' THEN 1 ELSE 0 END,
+  length(name) DESC NULLS LAST
 ON CONFLICT (nif) DO NOTHING;
