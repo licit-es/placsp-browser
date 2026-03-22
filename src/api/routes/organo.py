@@ -39,8 +39,10 @@ async def get_organo(
           avg(presupuesto_sin_iva)
             FILTER (WHERE presupuesto_sin_iva > 0) AS importe_medio,
           avg(EXTRACT(DAY FROM (
-            fecha_adjudicacion::timestamp - fecha_publicacion
-          ))) FILTER (WHERE fecha_adjudicacion IS NOT NULL) AS plazo_medio
+            fecha_adjudicacion::timestamp - fecha_limite::timestamp
+          ))) FILTER (WHERE fecha_adjudicacion IS NOT NULL
+                      AND fecha_limite IS NOT NULL
+                      AND fecha_adjudicacion > fecha_limite) AS plazo_medio
         FROM v_licitacion
         WHERE organo_id = $1
         """,

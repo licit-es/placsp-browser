@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+from decimal import Decimal
+
 import asyncpg
 from fastapi import APIRouter, Depends
 
@@ -107,14 +110,14 @@ def _apply_cursor(
         conditions.append(
             f"(v.fecha_publicacion, v.id) < (${idx}::timestamptz, ${idx + 1}::uuid)"
         )
-        params.extend([sort_val, cursor_id])
+        params.extend([datetime.fromisoformat(sort_val), cursor_id])
         idx += 2
     elif sort_key == "importe":
         conditions.append(
             f"(COALESCE(v.presupuesto_sin_iva, 0), v.id)"
             f" < (${idx}::decimal, ${idx + 1}::uuid)"
         )
-        params.extend([sort_val, cursor_id])
+        params.extend([Decimal(sort_val), cursor_id])
         idx += 2
     elif sort_key == "relevancia" and body.q:
         conditions.append(
@@ -123,7 +126,7 @@ def _apply_cursor(
             f" < (${idx + 1}::real, ${idx + 2}::uuid)"
         )
         params.append(body.q)
-        params.extend([sort_val, cursor_id])
+        params.extend([float(sort_val), cursor_id])
         idx += 3
     return idx
 
