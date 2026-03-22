@@ -1,4 +1,4 @@
-"""Response schemas for GET /empresa/{nif}."""
+"""Empresa schemas — search request/response and profile."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ class PeticionBusquedaEmpresas(BaseModel):
 class EmpresaResumen(BaseModel):
     """Resultado de busqueda de empresa adjudicataria."""
 
-    nif: str = Field(description="NIF/CIF de la empresa.")
+    id: str = Field(description="Identificador de la empresa en el sistema.")
     nombre: str = Field(description="Nombre o razon social.")
     contratos: int = Field(description="Numero de contratos adjudicados.")
 
@@ -56,7 +56,7 @@ class EmpresaStats(BaseModel):
 class EmpresaDetalle(BaseModel):
     """Perfil de empresa a partir de su historial de adjudicaciones."""
 
-    nif: str = Field(description="NIF/CIF de la empresa.")
+    id: str = Field(description="Identificador de la empresa en el sistema.")
     nombre: str = Field(description="Nombre o razon social.")
     stats: EmpresaStats = Field(description="Estadisticas agregadas.")
     adjudicaciones_recientes: list[LicitacionResumen] = Field(
