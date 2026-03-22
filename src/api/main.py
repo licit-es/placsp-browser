@@ -1,12 +1,12 @@
-"""FastAPI application for browsing PLACSP procurement data."""
+"""FastAPI application for agent-optimized PLACSP procurement search."""
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 from fastapi import FastAPI
 
-from api.routes import contratos, documentos, lotes, organos_contratantes, salud
+from api.routes import buscar, empresa, licitacion, organo, salud, similares
 from shared.db import create_pool
 
 
@@ -19,17 +19,18 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(
-    title="PLACSP Browser",
+    title="PLACSP API",
     description=(
-        "API para explorar datos de licitaciones publicas de la "
-        "Plataforma de Contratacion del Sector Publico (PLACSP)."
+        "API optimizada para agentes: busqueda unificada de licitaciones "
+        "de la Plataforma de Contratacion del Sector Publico."
     ),
-    version="0.1.0",
+    version="0.2.0",
     lifespan=lifespan,
 )
 
 app.include_router(salud.router)
-app.include_router(contratos.router, prefix="/api/v1")
-app.include_router(organos_contratantes.router, prefix="/api/v1")
-app.include_router(lotes.router, prefix="/api/v1")
-app.include_router(documentos.router, prefix="/api/v1")
+app.include_router(buscar.router, prefix="/api/v1")
+app.include_router(licitacion.router, prefix="/api/v1")
+app.include_router(empresa.router, prefix="/api/v1")
+app.include_router(organo.router, prefix="/api/v1")
+app.include_router(similares.router, prefix="/api/v1")
