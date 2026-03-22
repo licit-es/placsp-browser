@@ -44,9 +44,7 @@ class TestNormalizeNif:
 
 class TestDetectNifSwap:
     def test_swapped_fields(self) -> None:
-        identifier, name = detect_nif_swap(
-            "INDRA SISTEMAS, S.A.", "A28599033"
-        )
+        identifier, name = detect_nif_swap("INDRA SISTEMAS, S.A.", "A28599033")
         assert identifier == "A28599033"
         assert name == "INDRA SISTEMAS, S.A."
 
