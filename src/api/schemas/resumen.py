@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import json
 from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class CambioEstado(BaseModel):
@@ -69,6 +70,15 @@ class LicitacionResumen(BaseModel):
             "cronologicamente (Publicada, Adjudicada...)."
         )
     )
+
+    @field_validator("historial_estados", mode="before")
+    @classmethod
+    def _parse_jsonb(cls, v: object) -> object:
+        """asyncpg returns JSONB from view columns as str."""
+        if isinstance(v, str):
+            return json.loads(v)
+        return v or []
+
     relevancia: float | None = Field(
         None, description="Puntuacion de relevancia FTS (solo con texto libre)."
     )
