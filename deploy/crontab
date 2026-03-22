@@ -1,0 +1,6 @@
+# ETL schedules
+# Feed reader: every hour
+0 * * * * cd /app && PYTHONPATH=src uv run python -m etl.handlers.feed_reader >> /var/log/etl/feed_reader.log 2>&1
+
+# Catalog updater: daily at 03:00
+0 3 * * * cd /app && PYTHONPATH=src uv run python -m etl.handlers.catalog_updater >> /var/log/etl/catalog_updater.log 2>&1
