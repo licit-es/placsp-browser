@@ -32,6 +32,12 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile
     command: uv run uvicorn api.main:app --host 0.0.0.0 --port 8000
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/salud')"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
     environment:
       DATABASE_URL: postgresql://licit_api:${API_PASSWORD:-licit_readonly}@postgres:5432/licit
       ENVIRONMENT: production
