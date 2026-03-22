@@ -83,16 +83,16 @@ class TestParseFailureIsolation:
     _FEED_WITH_BAD_ENTRY = (
         b'<?xml version="1.0" encoding="UTF-8"?>'
         b'<feed xmlns="http://www.w3.org/2005/Atom"'
-        b'  xmlns:cac-place-ext='
+        b"  xmlns:cac-place-ext="
         b'"urn:dgpe:names:draft:codice-place-ext:schema:xsd:'
         b'CommonAggregateComponents-2"'
-        b'  xmlns:cbc-place-ext='
+        b"  xmlns:cbc-place-ext="
         b'"urn:dgpe:names:draft:codice-place-ext:schema:xsd:'
         b'CommonBasicComponents-2"'
-        b'  xmlns:cac='
+        b"  xmlns:cac="
         b'"urn:dgpe:names:draft:codice:schema:xsd:'
         b'CommonAggregateComponents-2"'
-        b'  xmlns:cbc='
+        b"  xmlns:cbc="
         b'"urn:dgpe:names:draft:codice:schema:xsd:'
         b'CommonBasicComponents-2">'
         # Entry 1 — missing ContractFolderStatus → parse error
