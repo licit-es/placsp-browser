@@ -22,7 +22,7 @@ from api.schemas import (
 router = APIRouter(tags=["Buscar"])
 
 _SORT_MAP = {
-    "fecha": "v.fecha_publicacion DESC, v.id DESC",
+    "fecha": "v.fecha_actualizacion DESC, v.id DESC",
     "importe": "v.presupuesto_sin_iva DESC NULLS LAST, v.id DESC",
     "relevancia": "rank DESC, v.id DESC",
 }
@@ -108,7 +108,7 @@ def _apply_cursor(
 
     if sort_key == "fecha" or (sort_key == "relevancia" and not body.q):
         conditions.append(
-            f"(v.fecha_publicacion, v.id) < (${idx}::timestamptz, ${idx + 1}::uuid)"
+            f"(v.fecha_actualizacion, v.id) < (${idx}::timestamptz, ${idx + 1}::uuid)"
         )
         params.extend([datetime.fromisoformat(sort_val), cursor_id])
         idx += 2
@@ -142,6 +142,7 @@ def _row_to_resumen(r: asyncpg.Record) -> LicitacionResumen:
         presupuesto_sin_iva=r["presupuesto_sin_iva"],
         importe_adjudicacion=r["importe_adjudicacion"],
         fecha_publicacion=r["fecha_publicacion"],
+        fecha_actualizacion=r["fecha_actualizacion"],
         fecha_adjudicacion=r["fecha_adjudicacion"],
         cpv_principal=r["cpv_principal"],
         num_licitadores=r["num_licitadores"],
@@ -149,6 +150,7 @@ def _row_to_resumen(r: asyncpg.Record) -> LicitacionResumen:
         lugar=r["lugar"],
         tiene_documentos=r["tiene_documentos"],
         num_lotes=r["num_lotes"],
+        historial_estados=r["historial_estados"] or [],
         relevancia=round(float(r["rank"]), 4) if r["rank"] else None,
     )
 
@@ -198,10 +200,11 @@ async def buscar(
         SELECT v.id, v.expediente, v.titulo, v.organo,
                v.tipo_contrato, v.estado, v.presupuesto_sin_iva,
                v.importe_adjudicacion, v.fecha_publicacion,
-               v.fecha_adjudicacion, v.cpv_principal,
-               v.num_licitadores, v.adjudicatario,
+               v.fecha_actualizacion, v.fecha_adjudicacion,
+               v.cpv_principal, v.num_licitadores, v.adjudicatario,
                v.lugar_subentidad AS lugar,
                v.tiene_documentos, v.num_lotes,
+               v.historial_estados,
                {rank_expr}
         FROM v_licitacion v
         {where}
@@ -221,7 +224,7 @@ async def buscar(
     if has_next and rows:
         last = rows[-1]
         if sort_key == "fecha":
-            cursor_siguiente = encode_cursor(last["fecha_publicacion"], last["id"])
+            cursor_siguiente = encode_cursor(last["fecha_actualizacion"], last["id"])
         elif sort_key == "importe":
             cursor_siguiente = encode_cursor(
                 last["presupuesto_sin_iva"] or 0, last["id"]

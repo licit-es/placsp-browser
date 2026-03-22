@@ -1,14 +1,69 @@
-"""GET /empresa/{nif} — company profile from adjudication history."""
+"""Empresa endpoints — search and profile."""
 
 from __future__ import annotations
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.deps import get_conn
-from api.schemas import EmpresaDetalle, EmpresaStats, LicitacionResumen
+from api.schemas import (
+    EmpresaDetalle,
+    EmpresaResumen,
+    EmpresaStats,
+    LicitacionResumen,
+)
 
 router = APIRouter(tags=["Empresas"])
+
+
+@router.get(
+    "/empresas",
+    response_model=list[EmpresaResumen],
+    summary="Buscar empresas adjudicatarias",
+)
+async def buscar_empresas(
+    q: str = Query(
+        min_length=2,
+        description="Texto de busqueda (nombre, NIF o ciudad).",
+    ),
+    limite: int = Query(
+        default=20,
+        ge=1,
+        le=100,
+        description="Maximo de resultados.",
+    ),
+    conn: asyncpg.Connection = Depends(get_conn),
+) -> list[EmpresaResumen]:
+    """Search companies by name, NIF or city."""
+    rows = await conn.fetch(
+        """
+        SELECT
+          wp.identifier AS nif,
+          mode() WITHIN GROUP (ORDER BY wp.name) AS nombre,
+          count(DISTINCT tr.contract_folder_status_id)
+            AS contratos
+        FROM winning_party wp
+        JOIN tender_result tr
+          ON tr.id = wp.tender_result_id
+        WHERE wp.identifier IS NOT NULL
+          AND (wp.name ILIKE '%' || $1 || '%'
+               OR wp.identifier ILIKE '%' || $1 || '%'
+               OR wp.city_name ILIKE '%' || $1 || '%')
+        GROUP BY wp.identifier
+        ORDER BY contratos DESC
+        LIMIT $2
+        """,
+        q,
+        limite,
+    )
+    return [
+        EmpresaResumen(
+            nif=r["nif"],
+            nombre=r["nombre"],
+            contratos=r["contratos"],
+        )
+        for r in rows
+    ]
 
 
 @router.get(
@@ -71,13 +126,14 @@ async def get_empresa(
         SELECT v.id, v.expediente, v.titulo, v.organo,
                v.tipo_contrato, v.estado, v.presupuesto_sin_iva,
                v.importe_adjudicacion, v.fecha_publicacion,
-               v.fecha_adjudicacion, v.cpv_principal,
-               v.num_licitadores, v.adjudicatario,
+               v.fecha_actualizacion, v.fecha_adjudicacion,
+               v.cpv_principal, v.num_licitadores, v.adjudicatario,
                v.lugar_subentidad AS lugar,
-               v.tiene_documentos, v.num_lotes
+               v.tiene_documentos, v.num_lotes,
+               v.historial_estados
         FROM v_licitacion v
         WHERE v.adjudicatario_nif = $1
-        ORDER BY v.fecha_publicacion DESC LIMIT 20
+        ORDER BY v.fecha_actualizacion DESC LIMIT 20
         """,
         nif,
     )
@@ -108,6 +164,7 @@ async def get_empresa(
                 presupuesto_sin_iva=r["presupuesto_sin_iva"],
                 importe_adjudicacion=r["importe_adjudicacion"],
                 fecha_publicacion=r["fecha_publicacion"],
+                fecha_actualizacion=r["fecha_actualizacion"],
                 fecha_adjudicacion=r["fecha_adjudicacion"],
                 cpv_principal=r["cpv_principal"],
                 num_licitadores=r["num_licitadores"],
@@ -115,6 +172,7 @@ async def get_empresa(
                 lugar=r["lugar"],
                 tiene_documentos=r["tiene_documentos"],
                 num_lotes=r["num_lotes"],
+                historial_estados=r["historial_estados"] or [],
             )
             for r in recientes
         ],

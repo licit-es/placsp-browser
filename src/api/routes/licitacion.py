@@ -141,6 +141,7 @@ async def get_licitacion(
         presupuesto_con_iva=row["presupuesto_con_iva"],
         valor_estimado=row["valor_estimado"],
         fecha_publicacion=row["fecha_publicacion"],
+        fecha_actualizacion=row["fecha_actualizacion"],
         fecha_limite=row["fecha_limite"],
         hora_limite=row["hora_limite"],
         duracion=row["duracion"],
@@ -158,4 +159,5 @@ async def get_licitacion(
         solvencia=[RequisitoSolvencia(**dict(r)) for r in solvencia_rows],
         lotes=lotes,
         documentos=[Documento(**dict(r)) for r in docs_rows],
+        historial_estados=row["historial_estados"] or [],
     )

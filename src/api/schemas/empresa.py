@@ -9,6 +9,14 @@ from pydantic import BaseModel, Field
 from api.schemas.resumen import LicitacionResumen
 
 
+class EmpresaResumen(BaseModel):
+    """Resultado de busqueda de empresa adjudicataria."""
+
+    nif: str = Field(description="NIF/CIF de la empresa.")
+    nombre: str = Field(description="Nombre o razon social.")
+    contratos: int = Field(description="Numero de contratos adjudicados.")
+
+
 class EmpresaStats(BaseModel):
     """Estadisticas agregadas de una empresa adjudicataria."""
 

@@ -31,6 +31,8 @@ CREATE INDEX IF NOT EXISTS idx_cp_name_trgm
   ON contracting_party USING gin(name gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_wp_name_trgm
   ON winning_party USING gin(name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_sc_cfs_updated
+  ON status_change (contract_folder_status_id, updated);
 
 -- =================================================================
 -- PRESENTATION VIEWS
@@ -44,7 +46,9 @@ SELECT
   cfs.name AS titulo,
   cfs.summary AS descripcion,
   cfs.link AS url_place,
-  cfs.updated AS fecha_publicacion,
+  cfs.updated AS fecha_actualizacion,
+  COALESCE(hist.first_seen, cfs.updated) AS fecha_publicacion,
+  COALESCE(hist.timeline, '[]'::jsonb) AS historial_estados,
   cfs.search_vector,
 
   -- Raw codes (for indexed filtering)
@@ -110,6 +114,18 @@ SELECT
 
 FROM contract_folder_status cfs
 LEFT JOIN contracting_party cp ON cp.id = cfs.contracting_party_id
+-- Status timeline (first publication + full history)
+LEFT JOIN LATERAL (
+  SELECT
+    min(sc.updated) AS first_seen,
+    jsonb_agg(jsonb_build_object(
+      'estado', COALESCE(cat_sc2.description, sc.status_code),
+      'fecha', sc.updated
+    ) ORDER BY sc.updated) AS timeline
+  FROM status_change sc
+  LEFT JOIN cat_status_code cat_sc2 ON cat_sc2.code = sc.status_code
+  WHERE sc.contract_folder_status_id = cfs.id
+) hist ON true
 -- Catalog lookups
 LEFT JOIN cat_status_code     cat_sc   ON cat_sc.code   = cfs.status_code
 LEFT JOIN cat_type_code       cat_tc   ON cat_tc.code   = cfs.type_code

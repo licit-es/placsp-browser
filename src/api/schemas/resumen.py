@@ -9,6 +9,13 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
+class CambioEstado(BaseModel):
+    """Entrada en el historial de estados de una licitacion."""
+
+    estado: str = Field(description="Estado (Publicada, Adjudicada...).")
+    fecha: datetime = Field(description="Fecha del cambio de estado.")
+
+
 class LicitacionResumen(BaseModel):
     """Resumen de licitacion para resultados de busqueda.
 
@@ -34,7 +41,15 @@ class LicitacionResumen(BaseModel):
     importe_adjudicacion: Decimal | None = Field(
         description="Importe de adjudicacion sin IVA. Solo si estado >= Adjudicada."
     )
-    fecha_publicacion: datetime = Field(description="Fecha de publicacion en PLACE.")
+    fecha_publicacion: datetime = Field(
+        description="Fecha de primera publicacion en PLACE."
+    )
+    fecha_actualizacion: datetime = Field(
+        description=(
+            "Fecha de ultima actualizacion en PLACE. "
+            "Comparar con valor almacenado para detectar cambios."
+        )
+    )
     fecha_adjudicacion: date | None = Field(
         description="Fecha de adjudicacion. Solo si estado >= Adjudicada."
     )
@@ -48,6 +63,12 @@ class LicitacionResumen(BaseModel):
         description="Indica si hay documentos (pliegos, resoluciones) disponibles."
     )
     num_lotes: int = Field(description="Numero de lotes. 0 si no esta dividido.")
+    historial_estados: list[CambioEstado] = Field(
+        description=(
+            "Timeline de estados de la licitacion, ordenado "
+            "cronologicamente (Publicada, Adjudicada...)."
+        )
+    )
     relevancia: float | None = Field(
         None, description="Puntuacion de relevancia FTS (solo con texto libre)."
     )

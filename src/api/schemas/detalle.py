@@ -8,6 +8,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from api.schemas.resumen import CambioEstado
+
 
 class Criterio(BaseModel):
     """Criterio de adjudicacion con peso.
@@ -163,7 +165,13 @@ class LicitacionDetalle(BaseModel):
         description="Valor estimado total incluyendo prorrogas y modificaciones."
     )
 
-    fecha_publicacion: datetime = Field(description="Fecha de publicacion.")
+    fecha_publicacion: datetime = Field(description="Fecha de primera publicacion.")
+    fecha_actualizacion: datetime = Field(
+        description=(
+            "Fecha de ultima actualizacion en PLACE. "
+            "Comparar con valor almacenado para detectar cambios."
+        )
+    )
     fecha_limite: date | None = Field(
         description="Fecha limite de presentacion de ofertas."
     )
@@ -206,4 +214,10 @@ class LicitacionDetalle(BaseModel):
     )
     documentos: list[Documento] = Field(
         description="Documentos disponibles (pliegos, resoluciones, actas)."
+    )
+    historial_estados: list[CambioEstado] = Field(
+        description=(
+            "Timeline de estados de la licitacion, ordenado "
+            "cronologicamente (Publicada, Adjudicada...)."
+        )
     )

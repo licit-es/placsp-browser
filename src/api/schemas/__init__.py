@@ -12,15 +12,17 @@ from api.schemas.detalle import (
     RequisitoSolvencia,
     ResultadoInfo,
 )
-from api.schemas.empresa import EmpresaDetalle, EmpresaStats
+from api.schemas.empresa import EmpresaDetalle, EmpresaResumen, EmpresaStats
 from api.schemas.organo import OrganoDetalle, OrganoStats
-from api.schemas.resumen import LicitacionResumen, RespuestaBusqueda
+from api.schemas.resumen import CambioEstado, LicitacionResumen, RespuestaBusqueda
 
 __all__ = [
     "AdjudicatarioInfo",
+    "CambioEstado",
     "Criterio",
     "Documento",
     "EmpresaDetalle",
+    "EmpresaResumen",
     "EmpresaStats",
     "FiltrosBusqueda",
     "LicitacionDetalle",

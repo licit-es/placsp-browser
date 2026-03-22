@@ -65,13 +65,14 @@ async def get_organo(
         SELECT v.id, v.expediente, v.titulo, v.organo,
                v.tipo_contrato, v.estado, v.presupuesto_sin_iva,
                v.importe_adjudicacion, v.fecha_publicacion,
-               v.fecha_adjudicacion, v.cpv_principal,
-               v.num_licitadores, v.adjudicatario,
+               v.fecha_actualizacion, v.fecha_adjudicacion,
+               v.cpv_principal, v.num_licitadores, v.adjudicatario,
                v.lugar_subentidad AS lugar,
-               v.tiene_documentos, v.num_lotes
+               v.tiene_documentos, v.num_lotes,
+               v.historial_estados
         FROM v_licitacion v
         WHERE v.organo_id = $1
-        ORDER BY v.fecha_publicacion DESC LIMIT 20
+        ORDER BY v.fecha_actualizacion DESC LIMIT 20
         """,
         organo_id,
     )
@@ -100,6 +101,7 @@ async def get_organo(
                 presupuesto_sin_iva=r["presupuesto_sin_iva"],
                 importe_adjudicacion=r["importe_adjudicacion"],
                 fecha_publicacion=r["fecha_publicacion"],
+                fecha_actualizacion=r["fecha_actualizacion"],
                 fecha_adjudicacion=r["fecha_adjudicacion"],
                 cpv_principal=r["cpv_principal"],
                 num_licitadores=r["num_licitadores"],
@@ -107,6 +109,7 @@ async def get_organo(
                 lugar=r["lugar"],
                 tiene_documentos=r["tiene_documentos"],
                 num_lotes=r["num_lotes"],
+                historial_estados=r["historial_estados"] or [],
             )
             for r in recientes
         ],
