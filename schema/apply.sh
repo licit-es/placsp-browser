@@ -41,4 +41,20 @@ if [ -f "$SCHEMA_DIR/seed.sql" ]; then
   echo "Catalogs seeded."
 fi
 
+# Create read-only API user (idempotent)
+API_PASS="${API_PASSWORD:-licit_readonly}"
+psql "$DB_URL" --set ON_ERROR_STOP=on <<SQL
+DO \$\$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'licit_api') THEN
+    CREATE ROLE licit_api LOGIN PASSWORD '${API_PASS}';
+  END IF;
+END \$\$;
+GRANT CONNECT ON DATABASE licit TO licit_api;
+GRANT USAGE ON SCHEMA public TO licit_api;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO licit_api;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO licit_api;
+SQL
+echo "API user ready."
+
 echo "Done."

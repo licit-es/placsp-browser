@@ -21,6 +21,7 @@ services:
     command: ./schema/apply.sh
     environment:
       DATABASE_URL: postgresql://licit:${POSTGRES_PASSWORD}@postgres:5432/licit
+      API_PASSWORD: ${API_PASSWORD:-licit_readonly}
     depends_on:
       postgres:
         condition: service_healthy
@@ -32,7 +33,7 @@ services:
       dockerfile: deploy/Dockerfile
     command: uv run uvicorn api.main:app --host 0.0.0.0 --port 8000
     environment:
-      DATABASE_URL: postgresql://licit:${POSTGRES_PASSWORD}@postgres:5432/licit
+      DATABASE_URL: postgresql://licit_api:${API_PASSWORD:-licit_readonly}@postgres:5432/licit
       ENVIRONMENT: production
       LOG_LEVEL: INFO
     depends_on:
@@ -77,7 +78,23 @@ services:
       - api
     restart: unless-stopped
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:?Set PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?Set PGADMIN_PASSWORD}
+      PGADMIN_LISTEN_PORT: 5050
+    ports:
+      - "127.0.0.1:5050:5050"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   pgdata:
   caddy_data:
   caddy_config:
+  pgadmin_data:
