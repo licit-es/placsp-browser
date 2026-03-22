@@ -4,16 +4,44 @@ API + ETL para explorar datos de licitaciones de la [Plataforma de Contratación
 
 Optimizada para consumo por agentes de IA: búsqueda unificada, respuestas densas, códigos CODICE resueltos a etiquetas legibles.
 
+## Acceso a la API
+
+Base URL: `https://api.licit.es/api/v1`
+
+Documentación interactiva: `https://api.licit.es/docs`
+
+No requiere autenticación. Rate limit: 30 req/min por IP.
+
+### Ejemplo: buscar licitaciones
+
+```bash
+curl -X POST https://api.licit.es/api/v1/buscar \
+  -H 'Content-Type: application/json' \
+  -d '{"q": "desarrollo software", "filtros": {"tipo_contrato": ["Servicios"]}, "limit": 5}'
+```
+
+### Ejemplo: detalle de una licitación
+
+```bash
+curl https://api.licit.es/api/v1/licitacion/<uuid>
+```
+
+### Ejemplo: valores válidos para filtros
+
+```bash
+curl https://api.licit.es/api/v1/catalogos/tipo_contrato
+```
+
 ## Endpoints
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| POST | `/api/v1/buscar` | Búsqueda unificada: texto libre + filtros + cursor |
-| GET | `/api/v1/licitacion/{id}` | Detalle completo (criterios, solvencia, lotes, docs) |
-| GET | `/api/v1/empresa/{nif}` | Perfil de empresa con stats agregadas |
-| GET | `/api/v1/organo/{id}` | Perfil de órgano con stats |
-| GET | `/api/v1/similares/{id}` | Licitaciones similares (CPV + importe) |
-| GET | `/api/v1/catalogos/{tipo}` | Valores válidos para filtros |
+| POST | `/buscar` | Búsqueda unificada: texto libre + filtros + cursor |
+| GET | `/licitacion/{id}` | Detalle completo (criterios, solvencia, lotes, docs) |
+| GET | `/empresa/{nif}` | Perfil de empresa con stats agregadas |
+| GET | `/organo/{id}` | Perfil de órgano con stats |
+| GET | `/similares/{id}` | Licitaciones similares (CPV + importe) |
+| GET | `/catalogos/{tipo}` | Valores válidos para filtros |
 
 ## Stack
 
@@ -22,12 +50,15 @@ Optimizada para consumo por agentes de IA: búsqueda unificada, respuestas densa
 - **Búsqueda**: tsvector español + pg_trgm para fuzzy
 - **Deploy**: Docker Compose + Caddy (auto-HTTPS) en Hetzner
 
-## Deploy rápido
+## Deploy
+
+1. Crear A record DNS: `api.licit.es → <IP del servidor>`
+2. Rellenar variables en `deploy/cloud-init.yml`
+3. Crear servidor en Hetzner pegando el cloud-init
+4. Tras boot, seed inicial:
 
 ```bash
-# Rellenar variables en deploy/cloud-init.yml y pegar en Hetzner al crear servidor.
-# Después del boot:
-ssh user@<ip>
+ssh adf@<ip>
 cd placsp-browser/deploy
 docker compose exec etl-cron sh -c \
   "cd /app && PYTHONPATH=src uv run python -m etl.handlers.feed_reader --seed"

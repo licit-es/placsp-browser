@@ -9,12 +9,16 @@
 #   cd placsp-browser/deploy
 #   docker compose exec etl-cron sh -c \
 #     "cd /app && PYTHONPATH=src uv run python -m etl.handlers.feed_reader --seed"
+#
+# DNS: create an A record for your domain pointing to the server IP.
+#   Example: api.licit.es → 1.2.3.4
+#   Caddy will auto-obtain HTTPS certs from Let's Encrypt once DNS resolves.
 
 # ── Variables (edit these) ──────────────────────────────────────────
-# SSH_PUBKEY: your public key (ssh-ed25519 AAAA... user@host)
-# DOMAIN: domain pointing to this server's IP (e.g. api.placsp.es)
-# POSTGRES_PASSWORD: database password
-# REPO_URL: git clone URL
+# SSH_PUBKEY:        your public key (ssh-ed25519 AAAA... user@host)
+# DOMAIN:            subdomain with A record pointing here (e.g. api.licit.es)
+# POSTGRES_PASSWORD: any strong password for the database
+# REPO_URL:          git clone URL (https://github.com/licit-es/placsp-browser.git)
 
 # ── User ────────────────────────────────────────────────────────────
 users:
