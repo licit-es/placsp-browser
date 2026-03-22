@@ -32,4 +32,13 @@ cat \
   "$SCHEMA_DIR"/11_api.sql \
 | psql "$DB_URL" --single-transaction --set ON_ERROR_STOP=on
 
-echo "Schema applied successfully."
+echo "Schema applied."
+
+# Seed catalog reference data (idempotent, ON CONFLICT DO UPDATE)
+if [ -f "$SCHEMA_DIR/seed.sql" ]; then
+  echo "Seeding catalogs ..."
+  psql "$DB_URL" -f "$SCHEMA_DIR/seed.sql" --set ON_ERROR_STOP=on
+  echo "Catalogs seeded."
+fi
+
+echo "Done."

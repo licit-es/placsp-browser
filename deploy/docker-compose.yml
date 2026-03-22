@@ -18,9 +18,7 @@ services:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    command: >
-      sh -c "apt-get update && apt-get install -y --no-install-recommends postgresql-client
-      && ./schema/apply.sh"
+    command: ./schema/apply.sh
     environment:
       DATABASE_URL: postgresql://licit:${POSTGRES_PASSWORD}@postgres:5432/licit
     depends_on:
@@ -49,11 +47,9 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile
     command: >
-      sh -c "apt-get update && apt-get install -y --no-install-recommends cron
-      && mkdir -p /var/log/etl
-      && cp deploy/crontab /etc/cron.d/etl
-      && chmod 0644 /etc/cron.d/etl
+      sh -c "chmod 0644 /etc/cron.d/etl
       && crontab /etc/cron.d/etl
+      && mkdir -p /var/log/etl
       && cron -f"
     environment:
       DATABASE_URL: postgresql://licit:${POSTGRES_PASSWORD}@postgres:5432/licit
@@ -71,6 +67,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN}
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
