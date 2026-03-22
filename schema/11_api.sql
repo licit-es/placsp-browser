@@ -47,7 +47,12 @@ SELECT
   cfs.updated AS fecha_publicacion,
   cfs.search_vector,
 
-  -- Codes resolved to labels
+  -- Raw codes (for indexed filtering)
+  cfs.status_code,
+  cfs.type_code,
+  cfs.procedure_code,
+
+  -- Codes resolved to labels (for display)
   COALESCE(cat_sc.description, cfs.status_code) AS estado,
   COALESCE(cat_tc.description, cfs.type_code) AS tipo_contrato,
   COALESCE(cat_pc.description, cfs.procedure_code) AS procedimiento,

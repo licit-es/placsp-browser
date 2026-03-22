@@ -7,6 +7,7 @@ from uuid import UUID
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from api.catalogs import to_codes
 from api.deps import get_conn
 from api.schemas import LicitacionResumen
 
@@ -28,7 +29,7 @@ async def get_similares(
     """Find structurally similar tenders by CPV prefix + amount range."""
     # Get reference tender from view
     ref = await conn.fetchrow(
-        "SELECT presupuesto_sin_iva, tipo_contrato, cpv_principal"
+        "SELECT presupuesto_sin_iva, type_code, cpv_principal"
         " FROM v_licitacion WHERE id = $1",
         licitacion_id,
     )
@@ -37,7 +38,7 @@ async def get_similares(
 
     cpv = ref["cpv_principal"]
     amount = ref["presupuesto_sin_iva"]
-    tipo = ref["tipo_contrato"]
+    tipo = ref["type_code"]
 
     # Build similarity query
     conditions = ["v.id != $1"]
@@ -56,9 +57,9 @@ async def get_similares(
         params.append(f"{prefix}%")
         idx += 1
 
-    # Same type (resolved label from view)
+    # Same type (raw code for indexed match)
     if tipo:
-        conditions.append(f"v.tipo_contrato = ${idx}")
+        conditions.append(f"v.type_code = ${idx}")
         params.append(tipo)
         idx += 1
 
@@ -74,8 +75,8 @@ async def get_similares(
         idx += 2
 
     if estado:
-        conditions.append(f"v.estado = ${idx}")
-        params.append(estado)
+        conditions.append(f"v.status_code = ${idx}")
+        params.append(to_codes("estado", [estado])[0])
         idx += 1
 
     where = "WHERE " + " AND ".join(conditions)

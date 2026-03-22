@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from api.catalogs import load as load_catalogs
 from api.routes import (
     buscar,
     catalogos,
@@ -22,6 +23,7 @@ from shared.db import create_pool
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Manage the asyncpg connection pool lifecycle."""
     app.state.pool = await create_pool()
+    await load_catalogs(app.state.pool)
     yield
     await app.state.pool.close()
 

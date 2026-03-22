@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncpg
 from fastapi import APIRouter, Depends
 
+from api.catalogs import to_codes
 from api.deps import get_conn
 from api.schemas import (
     FiltrosBusqueda,
@@ -32,12 +33,12 @@ def _apply_filters(
 ) -> int:
     """Append filter conditions and params. Returns next param index."""
     if f.tipo_contrato:
-        conditions.append(f"v.tipo_contrato = ANY(${idx})")
-        params.append(f.tipo_contrato)
+        conditions.append(f"v.type_code = ANY(${idx})")
+        params.append(to_codes("tipo_contrato", f.tipo_contrato))
         idx += 1
     if f.estado:
-        conditions.append(f"v.estado = ANY(${idx})")
-        params.append(f.estado)
+        conditions.append(f"v.status_code = ANY(${idx})")
+        params.append(to_codes("estado", f.estado))
         idx += 1
     if f.cpv_prefijo:
         conditions.append(
@@ -64,8 +65,8 @@ def _apply_filters(
         params.append(f.fecha_publicacion_hasta)
         idx += 1
     if f.procedimiento:
-        conditions.append(f"v.procedimiento = ANY(${idx})")
-        params.append(f.procedimiento)
+        conditions.append(f"v.procedure_code = ANY(${idx})")
+        params.append(to_codes("procedimiento", f.procedimiento))
         idx += 1
     if f.ccaa:
         conditions.append(f"v.lugar_subentidad ILIKE ${idx}")
