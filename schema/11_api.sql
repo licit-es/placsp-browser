@@ -1,9 +1,12 @@
--- Search infrastructure and API views
+-- Search infrastructure and presentation views
+-- Tables are for ETL ingestion; views are the API's interface.
 
--- pg_trgm for fuzzy name matching
+-- =================================================================
+-- SEARCH INFRASTRUCTURE
+-- =================================================================
+
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
--- FTS: stored tsvector on contract_folder_status (name + summary)
 ALTER TABLE contract_folder_status
   ADD COLUMN IF NOT EXISTS search_vector tsvector;
 
@@ -24,57 +27,68 @@ END $$;
 
 CREATE INDEX IF NOT EXISTS idx_cfs_search
   ON contract_folder_status USING gin(search_vector);
-
--- Trigram indexes for fuzzy matching on names
 CREATE INDEX IF NOT EXISTS idx_cp_name_trgm
   ON contracting_party USING gin(name gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_wp_name_trgm
   ON winning_party USING gin(name gin_trgm_ops);
 
--- Flat view: one row per licitación, ready for search results
+-- =================================================================
+-- PRESENTATION VIEWS
+-- =================================================================
+
+-- v_licitacion: one row per tender, all codes resolved to labels
 CREATE OR REPLACE VIEW v_licitacion AS
 SELECT
   cfs.id,
   cfs.contract_folder_id AS expediente,
   cfs.name AS titulo,
   cfs.summary AS descripcion,
+  cfs.link AS url_place,
   cfs.updated AS fecha_publicacion,
-  cfs.status_code AS estado,
-  cfs.type_code AS tipo_contrato,
-  cfs.procedure_code AS procedimiento,
-  cfs.urgency_code AS tramitacion,
+  cfs.search_vector,
+
+  -- Codes resolved to labels
+  COALESCE(cat_sc.description, cfs.status_code) AS estado,
+  COALESCE(cat_tc.description, cfs.type_code) AS tipo_contrato,
+  COALESCE(cat_pc.description, cfs.procedure_code) AS procedimiento,
+  COALESCE(cat_uc.description, cfs.urgency_code) AS tramitacion,
+  COALESCE(cat_cs.description, cfs.contracting_system_code) AS sistema_contratacion,
+
+  -- Economic
   cfs.tax_exclusive_amount AS presupuesto_sin_iva,
   cfs.total_amount AS presupuesto_con_iva,
   cfs.estimated_overall_contract_amount AS valor_estimado,
+
+  -- Temporal
   cfs.submission_deadline_date AS fecha_limite,
   cfs.submission_deadline_time AS hora_limite,
   cfs.duration_measure AS duracion,
   cfs.duration_unit_code AS duracion_unidad,
-  cfs.nuts_code AS lugar_nuts,
+
+  -- Geographic
+  COALESCE(cat_nuts.description, cfs.nuts_code) AS lugar_nuts,
   cfs.country_subentity AS lugar_subentidad,
+
+  -- Other
   cfs.funding_program_code,
-  cfs.funding_program_name AS programa_financiacion,
-  cfs.contracting_system_code AS sistema_contratacion,
+  COALESCE(cat_fp.description, cfs.funding_program_name) AS programa_financiacion,
   cfs.allowed_subcontract_rate AS tasa_subcontratacion,
-  cfs.search_vector,
 
   -- Organo
   cp.id AS organo_id,
   cp.name AS organo,
   cp.nif AS organo_nif,
-  cp.contracting_party_type_code AS organo_tipo,
+  COALESCE(cat_cat.description, cp.contracting_party_type_code) AS organo_tipo,
 
-  -- CPV principal (first folder-level)
-  (SELECT cc.item_classification_code
-   FROM cpv_classification cc
-   WHERE cc.contract_folder_status_id = cfs.id AND cc.lot_id IS NULL
-   ORDER BY cc.id LIMIT 1) AS cpv_principal,
+  -- CPV principal (with description)
+  cpv_sub.cpv_principal,
+  cpv_sub.cpv_principal_desc,
 
   -- Result (latest)
   tr.award_date AS fecha_adjudicacion,
   tr.awarded_tax_exclusive_amount AS importe_adjudicacion,
   tr.received_tender_quantity AS num_licitadores,
-  tr.result_code,
+  COALESCE(cat_rc.description, tr.result_code) AS resultado,
 
   -- Adjudicatario
   wp.name AS adjudicatario,
@@ -91,19 +105,130 @@ SELECT
 
 FROM contract_folder_status cfs
 LEFT JOIN contracting_party cp ON cp.id = cfs.contracting_party_id
+-- Catalog lookups
+LEFT JOIN cat_status_code     cat_sc   ON cat_sc.code   = cfs.status_code
+LEFT JOIN cat_type_code       cat_tc   ON cat_tc.code   = cfs.type_code
+LEFT JOIN cat_procedure_code  cat_pc   ON cat_pc.code   = cfs.procedure_code
+LEFT JOIN cat_urgency_code    cat_uc   ON cat_uc.code   = cfs.urgency_code
+LEFT JOIN cat_contracting_system cat_cs ON cat_cs.code  = cfs.contracting_system_code
+LEFT JOIN cat_nuts            cat_nuts ON cat_nuts.code  = cfs.nuts_code
+LEFT JOIN cat_funding_program cat_fp   ON cat_fp.code   = cfs.funding_program_code
+LEFT JOIN cat_contracting_authority_type cat_cat ON cat_cat.code = cp.contracting_party_type_code
+-- CPV principal with description
+LEFT JOIN LATERAL (
+  SELECT cc.item_classification_code AS cpv_principal,
+         cat_cpv.description AS cpv_principal_desc
+  FROM cpv_classification cc
+  LEFT JOIN cat_cpv ON cat_cpv.code = cc.item_classification_code
+  WHERE cc.contract_folder_status_id = cfs.id AND cc.lot_id IS NULL
+  ORDER BY cc.id LIMIT 1
+) cpv_sub ON true
+-- Tender result (latest)
 LEFT JOIN LATERAL (
   SELECT * FROM tender_result t
   WHERE t.contract_folder_status_id = cfs.id
-  ORDER BY t.award_date DESC NULLS LAST
-  LIMIT 1
+  ORDER BY t.award_date DESC NULLS LAST LIMIT 1
 ) tr ON true
+LEFT JOIN cat_result_code cat_rc ON cat_rc.code = tr.result_code
 LEFT JOIN LATERAL (
   SELECT name, identifier FROM winning_party
-  WHERE tender_result_id = tr.id
-  LIMIT 1
+  WHERE tender_result_id = tr.id LIMIT 1
 ) wp ON true
 LEFT JOIN LATERAL (
   SELECT issue_date FROM contract
-  WHERE tender_result_id = tr.id
-  LIMIT 1
+  WHERE tender_result_id = tr.id LIMIT 1
 ) ct ON true;
+
+
+-- v_criterio: awarding criteria with resolved type codes
+CREATE OR REPLACE VIEW v_criterio AS
+SELECT
+  ac.id,
+  ac.contract_folder_status_id AS licitacion_id,
+  ac.lot_id AS lote_id,
+  COALESCE(cat_act.description, ac.criteria_type_code) AS tipo,
+  COALESCE(cat_acst.description, ac.criteria_sub_type_code) AS subtipo,
+  ac.description AS descripcion,
+  ac.weight_numeric AS peso,
+  ac.note AS nota
+FROM awarding_criteria ac
+LEFT JOIN cat_awarding_criteria_type cat_act
+  ON cat_act.code = ac.criteria_type_code
+LEFT JOIN cat_awarding_criteria_sub_type cat_acst
+  ON cat_acst.code = ac.criteria_sub_type_code;
+
+
+-- v_solvencia: qualification requirements with resolved codes
+CREATE OR REPLACE VIEW v_solvencia AS
+SELECT
+  qr.id,
+  qr.contract_folder_status_id AS licitacion_id,
+  qr.lot_id AS lote_id,
+  qr.origin_type AS origen,
+  COALESCE(cat_ect.description, qr.evaluation_criteria_type_code) AS tipo_evaluacion,
+  qr.description AS descripcion,
+  qr.threshold_quantity AS umbral,
+  qr.personal_situation AS situacion_personal,
+  qr.operating_years_quantity AS anios_experiencia,
+  qr.employee_quantity AS num_empleados
+FROM qualification_requirement qr
+LEFT JOIN cat_evaluation_criteria_type cat_ect
+  ON cat_ect.code = qr.evaluation_criteria_type_code;
+
+
+-- v_documento: document references with resolved type codes
+CREATE OR REPLACE VIEW v_documento AS
+SELECT
+  dr.id,
+  dr.contract_folder_status_id AS licitacion_id,
+  COALESCE(cat_dt.description, dr.document_type_code) AS tipo,
+  dr.filename AS nombre,
+  dr.uri AS url
+FROM document_reference dr
+LEFT JOIN cat_document_type cat_dt ON cat_dt.code = dr.document_type_code;
+
+
+-- v_lote: lots with CPV descriptions
+CREATE OR REPLACE VIEW v_lote AS
+SELECT
+  l.id,
+  l.contract_folder_status_id AS licitacion_id,
+  l.lot_number AS numero,
+  l.name AS titulo,
+  l.tax_exclusive_amount AS presupuesto_sin_iva,
+  COALESCE(cat_nuts.description, l.nuts_code) AS lugar_nuts,
+  l.country_subentity AS lugar_subentidad
+FROM procurement_project_lot l
+LEFT JOIN cat_nuts ON cat_nuts.code = l.nuts_code;
+
+
+-- v_cpv: CPV codes with descriptions
+CREATE OR REPLACE VIEW v_cpv AS
+SELECT
+  cc.id,
+  cc.contract_folder_status_id AS licitacion_id,
+  cc.lot_id AS lote_id,
+  cc.item_classification_code AS codigo,
+  COALESCE(cat_cpv.description, cc.item_classification_code) AS descripcion
+FROM cpv_classification cc
+LEFT JOIN cat_cpv ON cat_cpv.code = cc.item_classification_code;
+
+
+-- v_adjudicacion: all adjudications (one row per winning party per result)
+-- Used for empresa/organo stats — unlike v_licitacion which picks only the
+-- latest result, this view exposes every award including per-lot results.
+CREATE OR REPLACE VIEW v_adjudicacion AS
+SELECT
+  cfs.id AS licitacion_id,
+  cfs.tax_exclusive_amount AS presupuesto_sin_iva,
+  tr.awarded_tax_exclusive_amount AS importe_adjudicacion,
+  tr.award_date AS fecha_adjudicacion,
+  tr.received_tender_quantity AS num_licitadores,
+  wp.name AS adjudicatario,
+  wp.identifier AS adjudicatario_nif,
+  cp.id AS organo_id,
+  cp.name AS organo
+FROM tender_result tr
+JOIN contract_folder_status cfs ON cfs.id = tr.contract_folder_status_id
+JOIN winning_party wp ON wp.tender_result_id = tr.id
+LEFT JOIN contracting_party cp ON cp.id = cfs.contracting_party_id;

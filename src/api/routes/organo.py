@@ -22,52 +22,41 @@ async def get_organo(
     conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]  # noqa: B008
 ) -> OrganoDetalle:
     """Contracting body profile with stats and recent tenders."""
+    # Use v_licitacion for a single row to get resolved organo fields
     org = await conn.fetchrow(
-        "SELECT id, name, nif, contracting_party_type_code"
-        " FROM contracting_party WHERE id = $1",
+        "SELECT organo_id, organo, organo_nif, organo_tipo"
+        " FROM v_licitacion WHERE organo_id = $1 LIMIT 1",
         organo_id,
     )
     if not org:
         raise HTTPException(status_code=404, detail="Organo no encontrado")
 
-    # Stats
     stats_row = await conn.fetchrow(
         """
         SELECT
           count(*) AS total,
-          avg(tax_exclusive_amount)
-            FILTER (WHERE tax_exclusive_amount > 0) AS importe_medio,
-          avg(
-            EXTRACT(DAY FROM (
-              tr.award_date::timestamp - cfs.updated
-            ))
-          ) FILTER (WHERE tr.award_date IS NOT NULL) AS plazo_medio
-        FROM contract_folder_status cfs
-        LEFT JOIN LATERAL (
-          SELECT award_date FROM tender_result t
-          WHERE t.contract_folder_status_id = cfs.id
-          ORDER BY t.award_date DESC NULLS LAST LIMIT 1
-        ) tr ON true
-        WHERE cfs.contracting_party_id = $1
+          avg(presupuesto_sin_iva)
+            FILTER (WHERE presupuesto_sin_iva > 0) AS importe_medio,
+          avg(EXTRACT(DAY FROM (
+            fecha_adjudicacion::timestamp - fecha_publicacion
+          ))) FILTER (WHERE fecha_adjudicacion IS NOT NULL) AS plazo_medio
+        FROM v_licitacion
+        WHERE organo_id = $1
         """,
         organo_id,
     )
 
-    # Top CPVs
     cpv_rows = await conn.fetch(
         """
-        SELECT cc.item_classification_code, count(*) AS n
-        FROM contract_folder_status cfs
-        JOIN cpv_classification cc ON cc.contract_folder_status_id = cfs.id
-          AND cc.lot_id IS NULL
-        WHERE cfs.contracting_party_id = $1
-        GROUP BY cc.item_classification_code
-        ORDER BY n DESC LIMIT 5
+        SELECT vc.codigo, count(*) AS n
+        FROM v_licitacion v
+        JOIN v_cpv vc ON vc.licitacion_id = v.id AND vc.lote_id IS NULL
+        WHERE v.organo_id = $1
+        GROUP BY vc.codigo ORDER BY n DESC LIMIT 5
         """,
         organo_id,
     )
 
-    # Recent tenders
     recientes = await conn.fetch(
         """
         SELECT v.id, v.expediente, v.titulo, v.organo,
@@ -79,8 +68,7 @@ async def get_organo(
                v.tiene_documentos, v.num_lotes
         FROM v_licitacion v
         WHERE v.organo_id = $1
-        ORDER BY v.fecha_publicacion DESC
-        LIMIT 20
+        ORDER BY v.fecha_publicacion DESC LIMIT 20
         """,
         organo_id,
     )
@@ -88,14 +76,14 @@ async def get_organo(
     plazo = stats_row["plazo_medio"] if stats_row else None
 
     return OrganoDetalle(
-        id=org["id"],
-        nombre=org["name"],
-        nif=org["nif"],
-        tipo=org["contracting_party_type_code"],
+        id=org["organo_id"],
+        nombre=org["organo"],
+        nif=org["organo_nif"],
+        tipo=org["organo_tipo"],
         stats=OrganoStats(
             total_licitaciones=stats_row["total"] if stats_row else 0,
             importe_medio=stats_row["importe_medio"] if stats_row else None,
-            cpv_frecuentes=[r["item_classification_code"] for r in cpv_rows],
+            cpv_frecuentes=[r["codigo"] for r in cpv_rows],
             plazo_medio_adjudicacion_dias=(
                 round(plazo) if plazo is not None else None
             ),

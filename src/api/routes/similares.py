@@ -26,27 +26,18 @@ async def get_similares(
     limit: int = Query(10, ge=1, le=50),
 ) -> list[LicitacionResumen]:
     """Find structurally similar tenders by CPV prefix + amount range."""
-    # Get reference tender's CPV and amount
+    # Get reference tender from view
     ref = await conn.fetchrow(
-        """
-        SELECT cfs.tax_exclusive_amount,
-               cfs.type_code,
-               (SELECT cc.item_classification_code
-                FROM cpv_classification cc
-                WHERE cc.contract_folder_status_id = cfs.id
-                  AND cc.lot_id IS NULL
-                LIMIT 1) AS cpv
-        FROM contract_folder_status cfs
-        WHERE cfs.id = $1
-        """,
+        "SELECT presupuesto_sin_iva, tipo_contrato, cpv_principal"
+        " FROM v_licitacion WHERE id = $1",
         licitacion_id,
     )
     if not ref:
         raise HTTPException(status_code=404, detail="Licitacion no encontrada")
 
-    cpv = ref["cpv"]
-    amount = ref["tax_exclusive_amount"]
-    type_code = ref["type_code"]
+    cpv = ref["cpv_principal"]
+    amount = ref["presupuesto_sin_iva"]
+    tipo = ref["tipo_contrato"]
 
     # Build similarity query
     conditions = ["v.id != $1"]
@@ -58,17 +49,17 @@ async def get_similares(
         cpv_prefix_len = 5
         prefix = cpv[:cpv_prefix_len] if len(cpv) >= cpv_prefix_len else cpv
         conditions.append(
-            f"EXISTS (SELECT 1 FROM cpv_classification cc"
-            f" WHERE cc.contract_folder_status_id = v.id"
-            f" AND cc.item_classification_code LIKE ${idx})"
+            f"EXISTS (SELECT 1 FROM v_cpv vc"
+            f" WHERE vc.licitacion_id = v.id"
+            f" AND vc.codigo LIKE ${idx})"
         )
         params.append(f"{prefix}%")
         idx += 1
 
-    # Same type
-    if type_code:
+    # Same type (resolved label from view)
+    if tipo:
         conditions.append(f"v.tipo_contrato = ${idx}")
-        params.append(type_code)
+        params.append(tipo)
         idx += 1
 
     # Amount range

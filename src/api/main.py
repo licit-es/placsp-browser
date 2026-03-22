@@ -6,7 +6,15 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from api.routes import buscar, empresa, licitacion, organo, salud, similares
+from api.routes import (
+    buscar,
+    catalogos,
+    empresa,
+    licitacion,
+    organo,
+    salud,
+    similares,
+)
 from shared.db import create_pool
 
 
@@ -34,3 +42,4 @@ app.include_router(licitacion.router, prefix="/api/v1")
 app.include_router(empresa.router, prefix="/api/v1")
 app.include_router(organo.router, prefix="/api/v1")
 app.include_router(similares.router, prefix="/api/v1")
+app.include_router(catalogos.router, prefix="/api/v1")

@@ -21,34 +21,6 @@ from api.schemas import (
 router = APIRouter(tags=["Licitaciones"])
 
 
-def _parse_criterios(rows: list[asyncpg.Record]) -> list[Criterio]:
-    return [
-        Criterio(
-            tipo=r["criteria_type_code"],
-            subtipo=r["criteria_sub_type_code"],
-            descripcion=r["description"],
-            peso=r["weight_numeric"],
-            nota=r["note"],
-        )
-        for r in rows
-    ]
-
-
-def _parse_solvencia(rows: list[asyncpg.Record]) -> list[RequisitoSolvencia]:
-    return [
-        RequisitoSolvencia(
-            origen=r["origin_type"],
-            tipo_evaluacion=r["evaluation_criteria_type_code"],
-            descripcion=r["description"],
-            umbral=r["threshold_quantity"],
-            situacion_personal=r["personal_situation"],
-            anios_experiencia=r["operating_years_quantity"],
-            num_empleados=r["employee_quantity"],
-        )
-        for r in rows
-    ]
-
-
 @router.get(
     "/licitacion/{licitacion_id}",
     response_model=LicitacionDetalle,
@@ -59,89 +31,89 @@ async def get_licitacion(
     conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]  # noqa: B008
 ) -> LicitacionDetalle:
     """Return full tender detail with nested criterios, solvencia, lotes, docs."""
-    # Main record from view
     row = await conn.fetchrow(
         "SELECT * FROM v_licitacion WHERE id = $1", licitacion_id
     )
     if not row:
         raise HTTPException(status_code=404, detail="Licitacion no encontrada")
 
-    # Parallel fetches for nested data
-    criterios_rows, solvencia_rows, lotes_rows, docs_rows, cpv_rows = (
+    # Nested data from presentation views
+    criterios_rows, solvencia_rows, docs_rows, cpv_rows, lotes_rows = (
         await conn.fetch(
-            "SELECT * FROM awarding_criteria"
-            " WHERE contract_folder_status_id = $1 AND lot_id IS NULL"
-            " ORDER BY weight_numeric DESC NULLS LAST",
+            "SELECT tipo, subtipo, descripcion, peso, nota"
+            " FROM v_criterio WHERE licitacion_id = $1 AND lote_id IS NULL"
+            " ORDER BY peso DESC NULLS LAST",
             licitacion_id,
         ),
         await conn.fetch(
-            "SELECT * FROM qualification_requirement"
-            " WHERE contract_folder_status_id = $1 AND lot_id IS NULL",
+            "SELECT origen, tipo_evaluacion, descripcion,"
+            "  umbral, situacion_personal, anios_experiencia, num_empleados"
+            " FROM v_solvencia WHERE licitacion_id = $1 AND lote_id IS NULL",
             licitacion_id,
         ),
         await conn.fetch(
-            "SELECT * FROM procurement_project_lot"
-            " WHERE contract_folder_status_id = $1 ORDER BY lot_number",
+            "SELECT tipo, nombre, url"
+            " FROM v_documento WHERE licitacion_id = $1",
             licitacion_id,
         ),
         await conn.fetch(
-            "SELECT document_type_code, filename, uri"
-            " FROM document_reference"
-            " WHERE contract_folder_status_id = $1",
+            "SELECT codigo, descripcion"
+            " FROM v_cpv WHERE licitacion_id = $1 AND lote_id IS NULL",
             licitacion_id,
         ),
         await conn.fetch(
-            "SELECT item_classification_code FROM cpv_classification"
-            " WHERE contract_folder_status_id = $1 AND lot_id IS NULL",
+            "SELECT * FROM v_lote WHERE licitacion_id = $1 ORDER BY numero",
             licitacion_id,
         ),
     )
 
-    # Build lotes with their own criterios/solvencia/cpvs
+    # Lotes with per-lot criterios, solvencia, CPVs
     lotes: list[LoteResumen] = []
-    for lot_row in lotes_rows:
-        lot_id = lot_row["id"]
-        lot_criterios = await conn.fetch(
-            "SELECT * FROM awarding_criteria WHERE lot_id = $1"
-            " ORDER BY weight_numeric DESC NULLS LAST",
-            lot_id,
-        )
-        lot_solvencia = await conn.fetch(
-            "SELECT * FROM qualification_requirement WHERE lot_id = $1",
-            lot_id,
-        )
-        lot_cpvs = await conn.fetch(
-            "SELECT item_classification_code FROM cpv_classification"
-            " WHERE lot_id = $1",
-            lot_id,
+    for lr in lotes_rows:
+        lot_id = lr["id"]
+        lot_criterios, lot_solvencia, lot_cpvs = (
+            await conn.fetch(
+                "SELECT tipo, subtipo, descripcion, peso, nota"
+                " FROM v_criterio WHERE lote_id = $1"
+                " ORDER BY peso DESC NULLS LAST",
+                lot_id,
+            ),
+            await conn.fetch(
+                "SELECT origen, tipo_evaluacion, descripcion,"
+                "  umbral, situacion_personal, anios_experiencia, num_empleados"
+                " FROM v_solvencia WHERE lote_id = $1",
+                lot_id,
+            ),
+            await conn.fetch(
+                "SELECT codigo FROM v_cpv WHERE lote_id = $1", lot_id
+            ),
         )
         lotes.append(
             LoteResumen(
-                numero=lot_row["lot_number"],
-                titulo=lot_row["name"],
-                presupuesto_sin_iva=lot_row["tax_exclusive_amount"],
-                cpv=[c["item_classification_code"] for c in lot_cpvs],
-                criterios=_parse_criterios(lot_criterios),
-                solvencia=_parse_solvencia(lot_solvencia),
+                numero=lr["numero"],
+                titulo=lr["titulo"],
+                presupuesto_sin_iva=lr["presupuesto_sin_iva"],
+                cpv=[c["codigo"] for c in lot_cpvs],
+                criterios=[Criterio(**dict(r)) for r in lot_criterios],
+                solvencia=[RequisitoSolvencia(**dict(r)) for r in lot_solvencia],
             )
         )
 
     # CPVs
-    cpv_codes = [c["item_classification_code"] for c in cpv_rows]
+    cpv_codes = [c["codigo"] for c in cpv_rows]
     cpv_principal = cpv_codes[0] if cpv_codes else row["cpv_principal"]
     cpv_secundarios = cpv_codes[1:] if len(cpv_codes) > 1 else []
 
     # Result
     resultado = None
-    if row["result_code"]:
+    if row["resultado"]:
         adj = None
         if row["adjudicatario"]:
             adj = AdjudicatarioInfo(
-                nombre=row["adjudicatario"],
-                nif=row["adjudicatario_nif"],
+                nombre=row["adjudicatario"], nif=row["adjudicatario_nif"]
             )
         resultado = ResultadoInfo(
-            resultado=row["result_code"],
+            resultado=row["resultado"],
             fecha_adjudicacion=row["fecha_adjudicacion"],
             importe_sin_iva=row["importe_adjudicacion"],
             num_licitadores=row["num_licitadores"],
@@ -164,7 +136,7 @@ async def get_licitacion(
         expediente=row["expediente"],
         titulo=row["titulo"],
         descripcion=row["descripcion"],
-        url_place=None,  # Not stored in schema
+        url_place=row["url_place"],
         tipo_contrato=row["tipo_contrato"],
         procedimiento=row["procedimiento"],
         tramitacion=row["tramitacion"],
@@ -186,15 +158,8 @@ async def get_licitacion(
         programa_financiacion=row["programa_financiacion"],
         organo=organo,
         resultado=resultado,
-        criterios=_parse_criterios(criterios_rows),
-        solvencia=_parse_solvencia(solvencia_rows),
+        criterios=[Criterio(**dict(r)) for r in criterios_rows],
+        solvencia=[RequisitoSolvencia(**dict(r)) for r in solvencia_rows],
         lotes=lotes,
-        documentos=[
-            Documento(
-                tipo=d["document_type_code"],
-                nombre=d["filename"],
-                url=d["uri"],
-            )
-            for d in docs_rows
-        ],
+        documentos=[Documento(**dict(r)) for r in docs_rows],
     )
