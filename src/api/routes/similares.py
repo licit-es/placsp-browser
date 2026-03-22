@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.deps import get_conn
 from api.inteligencia.estadisticas import confidence
-from api.inteligencia.similares import compute_intelligence
+from api.inteligencia.similares import IntelligenceResult, compute_intelligence
 from api.schemas.similares import (
     AdjudicatarioFrecuente,
     EstadisticasCompetencia,
@@ -123,9 +123,9 @@ async def get_similares(
 # -------------------------------------------------------------------
 
 
-def _confidence_label(intel: object) -> str:
+def _confidence_label(intel: IntelligenceResult) -> str:
     """Map pricing sample size to a human label."""
-    return confidence(intel.pricing)  # type: ignore[arg-type]
+    return confidence(intel.pricing)
 
 
 def _row_to_similar(

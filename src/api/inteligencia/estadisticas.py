@@ -189,7 +189,7 @@ async def desierta_rate(
     row = await conn.fetchrow(_DESIERTA_SQL, ids)
     if not row or not row["total"]:
         return None
-    return round(row["desiertas"] / row["total"], 3)
+    return round(int(row["desiertas"]) / int(row["total"]), 3)
 
 
 def confidence(pricing_stats: PricingStats | None) -> str:
