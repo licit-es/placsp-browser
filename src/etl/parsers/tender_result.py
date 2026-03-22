@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from lxml import etree
 
+from shared.codice.nif import detect_nif_swap, normalize_nif
 from shared.codice.xml_helpers import (
     attr,
     find_all,
@@ -166,7 +167,7 @@ class TenderResultParser:
         for wp in find_all(tr, "WinningParty"):
             pi = find_first(wp, "PartyIdentification")
             id_elem = find_first(pi, "ID") if pi is not None else None
-            identifier = text(id_elem)
+            raw_identifier = text(id_elem)
             identifier_scheme = attr(id_elem, "schemeName")
 
             party_name = find_first(wp, "PartyName")
@@ -174,7 +175,10 @@ class TenderResultParser:
                 text(find_first(party_name, "Name")) if party_name is not None else None
             )
             if not name:
-                name = identifier or ""
+                name = raw_identifier or ""
+
+            identifier, name = detect_nif_swap(raw_identifier, name)
+            identifier = normalize_nif(identifier)
 
             address = find_first(wp, "PostalAddress")
 
