@@ -54,7 +54,7 @@ curl https://api.licit.es/api/v1/catalogos/tipo_contrato
 
 1. Crear A record DNS: `api.licit.es → <IP del servidor>`
 2. Rellenar variables en `deploy/cloud-init.yml`
-3. Crear servidor en Hetzner pegando el cloud-init
+3. Crear servidor e insertar cloud-init
 4. Tras boot, seed inicial:
 
 ```bash
