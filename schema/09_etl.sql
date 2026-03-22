@@ -1,6 +1,6 @@
 -- EtlSyncState -- pagination tracking
 
-CREATE TABLE IF NOT EXISTS "EtlSyncState" (
+CREATE TABLE IF NOT EXISTS etl_sync_state (
   id                          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   feed_type                   text NOT NULL,
   year                        integer NOT NULL DEFAULT 0,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS "EtlSyncState" (
 
 -- EtlFailedEntries -- entries that failed processing
 
-CREATE TABLE IF NOT EXISTS "EtlFailedEntries" (
+CREATE TABLE IF NOT EXISTS etl_failed_entries (
   id                          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   feed_type                   text NOT NULL,
   entry_id                    text NOT NULL,
@@ -30,4 +30,4 @@ CREATE TABLE IF NOT EXISTS "EtlFailedEntries" (
 
 -- Partial unique: only one open failure per entry per feed
 CREATE UNIQUE INDEX IF NOT EXISTS uix_failed_entry_open
-  ON "EtlFailedEntries" (feed_type, entry_id) WHERE resolved_at IS NULL;
+  ON etl_failed_entries (feed_type, entry_id) WHERE resolved_at IS NULL;

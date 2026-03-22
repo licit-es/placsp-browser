@@ -1,6 +1,6 @@
 -- ContractingParty -- organizations
 
-CREATE TABLE IF NOT EXISTS "ContractingParty" (
+CREATE TABLE IF NOT EXISTS contracting_party (
   id                          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name                        text NOT NULL,
   dir3                        text,
@@ -25,6 +25,6 @@ CREATE TABLE IF NOT EXISTS "ContractingParty" (
 
 -- Partial unique indexes for identity resolution
 CREATE UNIQUE INDEX IF NOT EXISTS uix_contracting_party_dir3
-  ON "ContractingParty" (dir3) WHERE dir3 IS NOT NULL;
+  ON contracting_party (dir3) WHERE dir3 IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS uix_contracting_party_platform_id
-  ON "ContractingParty" (platform_id) WHERE platform_id IS NOT NULL;
+  ON contracting_party (platform_id) WHERE platform_id IS NOT NULL;

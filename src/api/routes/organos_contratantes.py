@@ -39,15 +39,15 @@ async def list_parties(
     where = "WHERE " + " AND ".join(conditions) if conditions else ""
 
     total = await conn.fetchval(
-        f'SELECT count(*) FROM "ContractingParty" p {where}',  # noqa: S608
+        f'SELECT count(*) FROM contracting_party p {where}',  # noqa: S608
         *params,
     )
 
     query = f"""
         SELECT p.*,
-               (SELECT count(*) FROM "ContractFolderStatus"
+               (SELECT count(*) FROM contract_folder_status
                 WHERE contracting_party_id = p.id) AS numero_contratos
-        FROM "ContractingParty" p
+        FROM contracting_party p
         {where}
         ORDER BY p.name
         LIMIT ${idx} OFFSET ${idx + 1}
@@ -74,7 +74,7 @@ async def get_party(
 ) -> dict[str, object]:
     """Get contracting party detail."""
     row = await conn.fetchrow(
-        'SELECT * FROM "ContractingParty" WHERE id = $1',
+        'SELECT * FROM contracting_party WHERE id = $1',
         organo_id,
     )
     if not row:
@@ -84,7 +84,7 @@ async def get_party(
 
     result = dict(row)
     result["numero_contratos"] = await conn.fetchval(
-        'SELECT count(*) FROM "ContractFolderStatus" WHERE contracting_party_id = $1',
+        'SELECT count(*) FROM contract_folder_status WHERE contracting_party_id = $1',
         organo_id,
     )
     return result
@@ -103,7 +103,7 @@ async def list_party_contracts(
 ) -> RespuestaPaginada[dict[str, object]]:
     """List contracts for a specific contracting party."""
     total = await conn.fetchval(
-        'SELECT count(*) FROM "ContractFolderStatus" WHERE contracting_party_id = $1',
+        'SELECT count(*) FROM contract_folder_status WHERE contracting_party_id = $1',
         organo_id,
     )
 
@@ -111,7 +111,7 @@ async def list_party_contracts(
         """
         SELECT id, entry_id, title, name, status_code, type_code,
                procedure_code, total_amount, currency_id, updated
-        FROM "ContractFolderStatus"
+        FROM contract_folder_status
         WHERE contracting_party_id = $1
         ORDER BY updated DESC
         LIMIT $2 OFFSET $3

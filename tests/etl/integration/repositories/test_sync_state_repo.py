@@ -13,7 +13,7 @@ DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
 async def pool():
     p = await asyncpg.create_pool(DATABASE_URL)
     yield p
-    await p.execute('TRUNCATE "EtlSyncState" CASCADE')
+    await p.execute('TRUNCATE etl_sync_state CASCADE')
     await p.close()
 
 
@@ -53,7 +53,7 @@ class TestUpdateStatus:
         state = await repo.get_or_create("outsiders", 0, "https://example.com/page1")
         await repo.update_status(state.id, "completed", entry_count=10, error_count=1)
         row = await pool.fetchrow(
-            'SELECT * FROM "EtlSyncState" WHERE id = $1',
+            'SELECT * FROM etl_sync_state WHERE id = $1',
             state.id,
         )
         assert row["status"] == "completed"

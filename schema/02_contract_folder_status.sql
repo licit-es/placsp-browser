@@ -1,6 +1,6 @@
 -- ContractFolderStatus -- root entity
 
-CREATE TABLE IF NOT EXISTS "ContractFolderStatus" (
+CREATE TABLE IF NOT EXISTS contract_folder_status (
   -- ATOM envelope
   entry_id                          text NOT NULL UNIQUE,
   title                             text,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS "ContractFolderStatus" (
   -- ContractFolderStatus
   contract_folder_id                text,
   status_code                       text NOT NULL,
-  contracting_party_id              uuid REFERENCES "ContractingParty",
+  contracting_party_id              uuid REFERENCES contracting_party,
 
   -- ProcurementProject (inlined, 1:1)
   name                              text,
@@ -77,12 +77,12 @@ CREATE TABLE IF NOT EXISTS "ContractFolderStatus" (
 
 DO $$ BEGIN
   CREATE TRIGGER guard_updated
-    BEFORE UPDATE ON "ContractFolderStatus"
+    BEFORE UPDATE ON contract_folder_status
     FOR EACH ROW EXECUTE FUNCTION reject_unless_newer();
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
-CREATE INDEX IF NOT EXISTS idx_cfs_contract_folder_id ON "ContractFolderStatus" (contract_folder_id);
-CREATE INDEX IF NOT EXISTS idx_cfs_status_code ON "ContractFolderStatus" (status_code);
-CREATE INDEX IF NOT EXISTS idx_cfs_contracting_party_id ON "ContractFolderStatus" (contracting_party_id);
-CREATE INDEX IF NOT EXISTS idx_cfs_updated ON "ContractFolderStatus" (updated);
+CREATE INDEX IF NOT EXISTS idx_cfs_contract_folder_id ON contract_folder_status (contract_folder_id);
+CREATE INDEX IF NOT EXISTS idx_cfs_status_code ON contract_folder_status (status_code);
+CREATE INDEX IF NOT EXISTS idx_cfs_contracting_party_id ON contract_folder_status (contracting_party_id);
+CREATE INDEX IF NOT EXISTS idx_cfs_updated ON contract_folder_status (updated);

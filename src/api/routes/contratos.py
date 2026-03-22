@@ -55,7 +55,7 @@ async def list_contracts(
 
     where = "WHERE " + " AND ".join(conditions) if conditions else ""
 
-    count_sql = f'SELECT count(*) FROM "ContractFolderStatus" c {where}'  # noqa: S608
+    count_sql = f'SELECT count(*) FROM contract_folder_status c {where}'  # noqa: S608
     total = await conn.fetchval(count_sql, *params)
 
     query = f"""
@@ -63,8 +63,8 @@ async def list_contracts(
                c.type_code, c.procedure_code, c.total_amount, c.currency_id,
                c.nuts_code, c.updated, c.contract_folder_id,
                p.name AS organo_contratante
-        FROM "ContractFolderStatus" c
-        LEFT JOIN "ContractingParty" p ON p.id = c.contracting_party_id
+        FROM contract_folder_status c
+        LEFT JOIN contracting_party p ON p.id = c.contracting_party_id
         {where}
         ORDER BY c.updated DESC
         LIMIT ${idx} OFFSET ${idx + 1}
@@ -96,8 +96,8 @@ async def get_contract(
         SELECT c.*, p.name AS organo_contratante_nombre,
                p.nif AS organo_contratante_nif,
                p.dir3 AS organo_contratante_dir3
-        FROM "ContractFolderStatus" c
-        LEFT JOIN "ContractingParty" p ON p.id = c.contracting_party_id
+        FROM contract_folder_status c
+        LEFT JOIN contracting_party p ON p.id = c.contracting_party_id
         WHERE c.id = $1
         """,
         contrato_id,
@@ -108,15 +108,15 @@ async def get_contract(
     contract = dict(row)
 
     lotes = await conn.fetch(
-        'SELECT * FROM "ProcurementProjectLot" WHERE contract_folder_status_id = $1',
+        'SELECT * FROM procurement_project_lot WHERE contract_folder_status_id = $1',
         contrato_id,
     )
     resultados = await conn.fetch(
         """
         SELECT tr.*, wp.name AS adjudicatario_nombre, wp.identifier AS adjudicatario_nif
-        FROM "TenderResult" tr
+        FROM tender_result tr
         LEFT JOIN LATERAL (
-            SELECT name, identifier FROM "WinningParty"
+            SELECT name, identifier FROM winning_party
             WHERE tender_result_id = tr.id LIMIT 1
         ) wp ON true
         WHERE tr.contract_folder_status_id = $1
@@ -124,7 +124,7 @@ async def get_contract(
         contrato_id,
     )
     documentos = await conn.fetch(
-        'SELECT * FROM "DocumentReference" WHERE contract_folder_status_id = $1',
+        'SELECT * FROM document_reference WHERE contract_folder_status_id = $1',
         contrato_id,
     )
 

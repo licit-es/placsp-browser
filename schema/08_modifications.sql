@@ -1,8 +1,8 @@
 -- ContractModification -- amendments
 
-CREATE TABLE IF NOT EXISTS "ContractModification" (
+CREATE TABLE IF NOT EXISTS contract_modification (
   id                              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  contract_folder_status_id       uuid NOT NULL REFERENCES "ContractFolderStatus" ON DELETE CASCADE,
+  contract_folder_status_id       uuid NOT NULL REFERENCES contract_folder_status ON DELETE CASCADE,
   modification_number             text,
   contract_id                     text,
   note                            text,
@@ -15,16 +15,16 @@ CREATE TABLE IF NOT EXISTS "ContractModification" (
   currency_id                     text
 );
 
-CREATE INDEX IF NOT EXISTS idx_cm_cfs_id ON "ContractModification" (contract_folder_status_id);
+CREATE INDEX IF NOT EXISTS idx_cm_cfs_id ON contract_modification (contract_folder_status_id);
 
 -- StatusChange -- folder status timeline (append-only)
 
-CREATE TABLE IF NOT EXISTS "StatusChange" (
+CREATE TABLE IF NOT EXISTS status_change (
   id                          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  contract_folder_status_id   uuid NOT NULL REFERENCES "ContractFolderStatus" ON DELETE CASCADE,
+  contract_folder_status_id   uuid NOT NULL REFERENCES contract_folder_status ON DELETE CASCADE,
   status_code                 text NOT NULL,
   updated                     timestamptz NOT NULL,
   recorded_at                 timestamptz DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_sc_cfs_id ON "StatusChange" (contract_folder_status_id);
+CREATE INDEX IF NOT EXISTS idx_sc_cfs_id ON status_change (contract_folder_status_id);

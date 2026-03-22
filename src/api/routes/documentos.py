@@ -49,14 +49,14 @@ async def list_documents(
     where = "WHERE " + " AND ".join(conditions) if conditions else ""
 
     total = await conn.fetchval(
-        f'SELECT count(*) FROM "DocumentReference" d {where}',  # noqa: S608
+        f'SELECT count(*) FROM document_reference d {where}',  # noqa: S608
         *params,
     )
 
     query = f"""
         SELECT d.*, c.title AS contrato_titulo, c.entry_id AS contrato_entry_id
-        FROM "DocumentReference" d
-        JOIN "ContractFolderStatus" c ON c.id = d.contract_folder_status_id
+        FROM document_reference d
+        JOIN contract_folder_status c ON c.id = d.contract_folder_status_id
         {where}
         ORDER BY d.id
         LIMIT ${idx} OFFSET ${idx + 1}

@@ -33,7 +33,7 @@ async def list_lots(
     if cpv:
         conditions.append(
             f"""EXISTS (
-                SELECT 1 FROM "CpvClassification" cv
+                SELECT 1 FROM cpv_classification cv
                 WHERE cv.lot_id = l.id
                 AND cv.item_classification_code LIKE ${idx}
             )"""
@@ -52,15 +52,15 @@ async def list_lots(
     where = "WHERE " + " AND ".join(conditions) if conditions else ""
 
     total = await conn.fetchval(
-        f'SELECT count(*) FROM "ProcurementProjectLot" l {where}',  # noqa: S608
+        f'SELECT count(*) FROM procurement_project_lot l {where}',  # noqa: S608
         *params,
     )
 
     query = f"""
         SELECT l.*, c.title AS contrato_titulo, c.status_code,
                c.entry_id AS contrato_entry_id
-        FROM "ProcurementProjectLot" l
-        JOIN "ContractFolderStatus" c ON c.id = l.contract_folder_status_id
+        FROM procurement_project_lot l
+        JOIN contract_folder_status c ON c.id = l.contract_folder_status_id
         {where}
         ORDER BY l.total_amount DESC NULLS LAST
         LIMIT ${idx} OFFSET ${idx + 1}

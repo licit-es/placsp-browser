@@ -1,20 +1,20 @@
 -- ValidNoticeInfo -- publication notices
 
-CREATE TABLE IF NOT EXISTS "ValidNoticeInfo" (
+CREATE TABLE IF NOT EXISTS valid_notice_info (
   id                          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  contract_folder_status_id   uuid NOT NULL REFERENCES "ContractFolderStatus" ON DELETE CASCADE,
+  contract_folder_status_id   uuid NOT NULL REFERENCES contract_folder_status ON DELETE CASCADE,
   notice_type_code            text,
   notice_issue_date           date
 );
 
-CREATE INDEX IF NOT EXISTS idx_vni_cfs_id ON "ValidNoticeInfo" (contract_folder_status_id);
+CREATE INDEX IF NOT EXISTS idx_vni_cfs_id ON valid_notice_info (contract_folder_status_id);
 
 -- PublicationStatus -- media publications (1:N per notice)
 
-CREATE TABLE IF NOT EXISTS "PublicationStatus" (
+CREATE TABLE IF NOT EXISTS publication_status (
   id                          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  valid_notice_info_id        uuid NOT NULL REFERENCES "ValidNoticeInfo" ON DELETE CASCADE,
+  valid_notice_info_id        uuid NOT NULL REFERENCES valid_notice_info ON DELETE CASCADE,
   publication_media_name      text
 );
 
-CREATE INDEX IF NOT EXISTS idx_ps_vni_id ON "PublicationStatus" (valid_notice_info_id);
+CREATE INDEX IF NOT EXISTS idx_ps_vni_id ON publication_status (valid_notice_info_id);
