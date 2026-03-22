@@ -1,0 +1,119 @@
+[project]
+name = "placsp-browser"
+version = "0.1.0"
+description = "API y ETL para explorar licitaciones de la PLACSP"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "asyncpg>=0.31.0",
+  "fastapi>=0.115.0",
+  "feedparser>=6.0.12",
+  "httpx>=0.28.1",
+  "lxml>=6.0.2",
+  "pydantic>=2.12.5",
+  "pydantic-settings>=2.12.0",
+  "uvicorn[standard]>=0.34.0",
+]
+
+[dependency-groups]
+dev = [
+  "mypy>=1.19.1",
+  "pre-commit>=4.5.1",
+  "pytest>=9.0.2",
+  "pytest-asyncio>=1.3.0",
+  "pytest-cov>=7.0.0",
+  "respx>=0.22.0",
+  "ruff>=0.14.12",
+  "taskipy>=1.14.1",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+exclude = ["docs"]
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "W",
+  "F",
+  "I",
+  "B",
+  "UP",
+  "SIM",
+  "C4",
+  "RET",
+  "ARG",
+  "PL",
+  "RUF",
+  "ERA",
+  "TRY",
+  "BLE",
+  "S",
+  "DTZ",
+  "PT",
+  "PERF",
+  "PIE",
+  "RSE",
+]
+ignore = []
+fixable = ["ALL"]
+
+[tool.ruff.lint.pylint]
+max-args = 7
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "PLR2004", "S608"]
+"src/etl/repositories/catalog_repo.py" = ["S608"]
+"src/etl/repositories/entry_repo.py" = ["S608"]
+"src/etl/services/feed_reader.py" = ["BLE001"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = false
+warn_return_any = true
+disallow_untyped_defs = true
+explicit_package_bases = true
+mypy_path = "src"
+exclude = "docs/.*"
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = [
+  "lxml.*",
+  "feedparser.*",
+  "respx.*",
+  "asyncpg.*",
+  "taskipy.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+testpaths = ["tests"]
+addopts = "-v --strict-markers --strict-config"
+asyncio_mode = "strict"
+markers = ["network: tests that require network access to PLACSP feeds"]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+relative_files = true
+
+[tool.coverage.report]
+fail_under = 85
+
+[tool.taskipy.tasks]
+test = "pytest"
+lint = "ruff check . && ruff format --check . && sh -c '! grep -rn \"# noqa\" src/ tests/ || { echo \"ERROR: Use per-file-ignores in pyproject.toml instead of inline noqa\"; exit 1; }'"
+fix = "ruff check --fix . && ruff format ."
