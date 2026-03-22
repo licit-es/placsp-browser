@@ -29,19 +29,15 @@ async def buscar_empresas(
     """Search companies by name, NIF or city."""
     rows = await conn.fetch(
         """
-        SELECT
-          wp.identifier AS nif,
-          mode() WITHIN GROUP (ORDER BY wp.name) AS nombre,
-          count(DISTINCT tr.contract_folder_status_id)
-            AS contratos
-        FROM winning_party wp
-        JOIN tender_result tr
-          ON tr.id = wp.tender_result_id
-        WHERE wp.identifier IS NOT NULL
-          AND (wp.name ILIKE '%' || $1 || '%'
-               OR wp.identifier ILIKE '%' || $1 || '%'
-               OR wp.city_name ILIKE '%' || $1 || '%')
-        GROUP BY wp.identifier
+        SELECT e.nif, e.nombre,
+          (SELECT count(DISTINCT tr.contract_folder_status_id)
+           FROM winning_party wp
+           JOIN tender_result tr ON tr.id = wp.tender_result_id
+           WHERE wp.identifier = e.nif) AS contratos
+        FROM empresa e
+        WHERE e.nombre ILIKE '%' || $1 || '%'
+           OR e.nif ILIKE '%' || $1 || '%'
+           OR e.ciudad ILIKE '%' || $1 || '%'
         ORDER BY contratos DESC
         LIMIT $2
         """,
@@ -50,7 +46,7 @@ async def buscar_empresas(
     )
     return [
         EmpresaResumen(
-            nif=r["nif"],
+            id=r["nif"],
             nombre=r["nombre"],
             contratos=r["contratos"],
         )
@@ -59,35 +55,36 @@ async def buscar_empresas(
 
 
 @router.get(
-    "/empresa/{nif}",
+    "/empresa/{empresa_id}",
     response_model=EmpresaDetalle,
     summary="Perfil de empresa adjudicataria",
 )
 async def get_empresa(
-    nif: str,
+    empresa_id: str,
     conn: asyncpg.Connection = Depends(get_conn),
 ) -> EmpresaDetalle:
     """Company profile with aggregated stats and recent adjudications."""
     stats_row = await conn.fetchrow(
         """
         SELECT
-          adjudicatario AS nombre,
-          count(DISTINCT licitacion_id) AS contratos,
-          sum(importe_adjudicacion) AS importe_total,
-          avg(importe_adjudicacion)
-            FILTER (WHERE importe_adjudicacion > 0) AS importe_medio,
+          e.nombre,
+          count(DISTINCT va.licitacion_id) AS contratos,
+          sum(va.importe_adjudicacion) AS importe_total,
+          avg(va.importe_adjudicacion)
+            FILTER (WHERE va.importe_adjudicacion > 0) AS importe_medio,
           avg(
-            CASE WHEN presupuesto_sin_iva > 0
-              THEN (1 - importe_adjudicacion / presupuesto_sin_iva) * 100
+            CASE WHEN va.presupuesto_sin_iva > 0
+              THEN (1 - va.importe_adjudicacion
+                      / va.presupuesto_sin_iva) * 100
             END
-          ) FILTER (WHERE importe_adjudicacion > 0
-                    AND presupuesto_sin_iva > 0) AS baja_media
-        FROM v_adjudicacion
-        WHERE adjudicatario_nif = $1
-        GROUP BY adjudicatario
-        ORDER BY contratos DESC LIMIT 1
+          ) FILTER (WHERE va.importe_adjudicacion > 0
+                    AND va.presupuesto_sin_iva > 0) AS baja_media
+        FROM empresa e
+        JOIN v_adjudicacion va ON va.adjudicatario_nif = e.nif
+        WHERE e.nif = $1
+        GROUP BY e.nombre
         """,
-        nif,
+        empresa_id,
     )
     if not stats_row:
         raise HTTPException(status_code=404, detail="Empresa no encontrada")
@@ -100,7 +97,7 @@ async def get_empresa(
         WHERE va.adjudicatario_nif = $1
         GROUP BY vc.codigo ORDER BY n DESC LIMIT 5
         """,
-        nif,
+        empresa_id,
     )
 
     organo_rows = await conn.fetch(
@@ -110,7 +107,7 @@ async def get_empresa(
         WHERE adjudicatario_nif = $1
         GROUP BY organo ORDER BY n DESC LIMIT 5
         """,
-        nif,
+        empresa_id,
     )
 
     recientes = await conn.fetch(
@@ -127,11 +124,11 @@ async def get_empresa(
         WHERE v.adjudicatario_nif = $1
         ORDER BY v.fecha_actualizacion DESC LIMIT 20
         """,
-        nif,
+        empresa_id,
     )
 
     return EmpresaDetalle(
-        nif=nif,
+        id=empresa_id,
         nombre=stats_row["nombre"],
         stats=EmpresaStats(
             contratos_adjudicados=stats_row["contratos"],

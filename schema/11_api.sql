@@ -35,6 +35,48 @@ CREATE INDEX IF NOT EXISTS idx_sc_cfs_updated
   ON status_change (contract_folder_status_id, updated);
 
 -- =================================================================
+-- EMPRESA (canonical companies, derived from winning_party)
+-- =================================================================
+
+CREATE TABLE IF NOT EXISTS empresa (
+  nif     text PRIMARY KEY,
+  nombre  text NOT NULL,
+  ciudad  text,
+  tipo    text
+);
+
+-- Trigger: upsert empresa on every winning_party INSERT.
+-- "Longest name wins" — picks the most complete spelling (S.L.U. etc.).
+CREATE OR REPLACE FUNCTION empresa_upsert() RETURNS trigger AS $$
+BEGIN
+  IF NEW.identifier IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  INSERT INTO empresa (nif, nombre, ciudad, tipo)
+  VALUES (NEW.identifier, NEW.name, NEW.city_name, NEW.company_type_code)
+  ON CONFLICT (nif) DO UPDATE SET
+    nombre = CASE WHEN length(EXCLUDED.nombre) > length(empresa.nombre)
+             THEN EXCLUDED.nombre ELSE empresa.nombre END,
+    ciudad = CASE WHEN length(EXCLUDED.nombre) > length(empresa.nombre)
+             THEN EXCLUDED.ciudad ELSE empresa.ciudad END,
+    tipo   = CASE WHEN length(EXCLUDED.nombre) > length(empresa.nombre)
+             THEN EXCLUDED.tipo ELSE empresa.tipo END;
+
+  RETURN NEW;
+END $$ LANGUAGE plpgsql SET search_path = public;
+
+DO $$ BEGIN
+  CREATE TRIGGER empresa_upsert_trigger
+    AFTER INSERT ON winning_party
+    FOR EACH ROW EXECUTE FUNCTION empresa_upsert();
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_empresa_nombre_trgm
+  ON empresa USING gin(nombre gin_trgm_ops);
+
+-- =================================================================
 -- PRESENTATION VIEWS
 -- =================================================================
 
@@ -255,3 +297,15 @@ FROM tender_result tr
 JOIN contract_folder_status cfs ON cfs.id = tr.contract_folder_status_id
 JOIN winning_party wp ON wp.tender_result_id = tr.id
 LEFT JOIN contracting_party cp ON cp.id = cfs.contracting_party_id;
+
+-- =================================================================
+-- EMPRESA INITIAL POPULATION (idempotent, picks longest name per NIF)
+-- =================================================================
+
+INSERT INTO empresa (nif, nombre, ciudad, tipo)
+SELECT DISTINCT ON (identifier)
+  identifier, name, city_name, company_type_code
+FROM winning_party
+WHERE identifier IS NOT NULL
+ORDER BY identifier, length(name) DESC NULLS LAST
+ON CONFLICT (nif) DO NOTHING;
