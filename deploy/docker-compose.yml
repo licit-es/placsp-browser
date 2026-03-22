@@ -81,8 +81,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:?Set PGADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?Set PGADMIN_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
       PGADMIN_LISTEN_PORT: 5050
     ports:
       - "127.0.0.1:5050:5050"
