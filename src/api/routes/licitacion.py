@@ -1,4 +1,5 @@
 """GET /licitacion/{id} — full tender detail."""
+
 from __future__ import annotations
 
 from uuid import UUID
@@ -31,9 +32,7 @@ async def get_licitacion(
     conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
 ) -> LicitacionDetalle:
     """Return full tender detail with nested criterios, solvencia, lotes, docs."""
-    row = await conn.fetchrow(
-        "SELECT * FROM v_licitacion WHERE id = $1", licitacion_id
-    )
+    row = await conn.fetchrow("SELECT * FROM v_licitacion WHERE id = $1", licitacion_id)
     if not row:
         raise HTTPException(status_code=404, detail="Licitacion no encontrada")
 
@@ -52,8 +51,7 @@ async def get_licitacion(
             licitacion_id,
         ),
         await conn.fetch(
-            "SELECT tipo, nombre, url"
-            " FROM v_documento WHERE licitacion_id = $1",
+            "SELECT tipo, nombre, url FROM v_documento WHERE licitacion_id = $1",
             licitacion_id,
         ),
         await conn.fetch(
@@ -84,9 +82,7 @@ async def get_licitacion(
                 " FROM v_solvencia WHERE lote_id = $1",
                 lot_id,
             ),
-            await conn.fetch(
-                "SELECT codigo FROM v_cpv WHERE lote_id = $1", lot_id
-            ),
+            await conn.fetch("SELECT codigo FROM v_cpv WHERE lote_id = $1", lot_id),
         )
         lotes.append(
             LoteResumen(

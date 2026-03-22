@@ -22,16 +22,16 @@ logger = get_logger(__name__)
 
 # Child tables deleted on folder re-upsert (document_reference excluded).
 _CHILD_TABLES = (
-    'contract_modification',
-    'valid_notice_info',
-    'tender_result',
-    'awarding_criteria',
-    'financial_guarantee',
-    'qualification_requirement',
-    'business_classification',
-    'execution_condition',
-    'cpv_classification',
-    'procurement_project_lot',
+    "contract_modification",
+    "valid_notice_info",
+    "tender_result",
+    "awarding_criteria",
+    "financial_guarantee",
+    "qualification_requirement",
+    "business_classification",
+    "execution_condition",
+    "cpv_classification",
+    "procurement_project_lot",
 )
 
 # Columns for contract_folder_status INSERT/UPDATE (excluding id, created_at).
@@ -106,7 +106,7 @@ def _build_cfs_sql() -> str:
     placeholders = ", ".join(f"${i}" for i in range(1, len(_CFS_COLS) + 1))
     sets = ", ".join(f"{c} = EXCLUDED.{c}" for c in _CFS_UPDATE_COLS)
     return (
-        f'INSERT INTO contract_folder_status ({cols})'
+        f"INSERT INTO contract_folder_status ({cols})"
         f" VALUES ({placeholders})"
         f" ON CONFLICT (entry_id) DO UPDATE SET {sets}"
         " RETURNING id"
@@ -145,7 +145,7 @@ class PgEntryRepository:
 
             # Detach docs from publication_statuses before cascade
             await conn.execute(
-                'UPDATE document_reference'
+                "UPDATE document_reference"
                 " SET publication_status_id = NULL"
                 " WHERE contract_folder_status_id = $1"
                 " AND publication_status_id IS NOT NULL",
@@ -165,7 +165,7 @@ class PgEntryRepository:
             await self._upsert_documents(conn, folder_id, entry.direct_documents)
 
             await conn.execute(
-                'INSERT INTO status_change'
+                "INSERT INTO status_change"
                 " (contract_folder_status_id,"
                 " status_code, updated)"
                 " VALUES ($1, $2, $3)",
@@ -186,7 +186,7 @@ class PgEntryRepository:
         entry: ParsedEntry,
     ) -> bool:
         row = await conn.fetchrow(
-            'SELECT updated FROM contract_folder_status WHERE entry_id = $1',
+            "SELECT updated FROM contract_folder_status WHERE entry_id = $1",
             entry.envelope.entry_id,
         )
         if row is None:
@@ -270,7 +270,7 @@ class PgEntryRepository:
             # Concurrent upsert race: another transaction committed
             # the row between our conflict check and lock acquisition.
             row = await conn.fetchrow(
-                'SELECT id FROM contract_folder_status WHERE entry_id = $1',
+                "SELECT id FROM contract_folder_status WHERE entry_id = $1",
                 f.entry_id,
             )
         if row is None:
@@ -311,7 +311,7 @@ class PgEntryRepository:
         pid_row = None
         if party.platform_id:
             pid_row = await conn.fetchrow(
-                'SELECT id FROM contracting_party WHERE platform_id = $1',
+                "SELECT id FROM contracting_party WHERE platform_id = $1",
                 party.platform_id,
             )
 
@@ -319,7 +319,7 @@ class PgEntryRepository:
         dir3_row = None
         if party.dir3:
             dir3_row = await conn.fetchrow(
-                'SELECT id FROM contracting_party WHERE dir3 = $1',
+                "SELECT id FROM contracting_party WHERE dir3 = $1",
                 party.dir3,
             )
 
@@ -329,20 +329,20 @@ class PgEntryRepository:
             # guard_updated trigger rejects FK-only updates (no timestamp change),
             # so temporarily disable it for the merge reassignment.
             await conn.execute(
-                'ALTER TABLE contract_folder_status DISABLE TRIGGER guard_updated'
+                "ALTER TABLE contract_folder_status DISABLE TRIGGER guard_updated"
             )
             await conn.execute(
-                'UPDATE contract_folder_status'
+                "UPDATE contract_folder_status"
                 " SET contracting_party_id = $1"
                 " WHERE contracting_party_id = $2",
                 pid_row["id"],
                 dir3_row["id"],
             )
             await conn.execute(
-                'ALTER TABLE contract_folder_status ENABLE TRIGGER guard_updated'
+                "ALTER TABLE contract_folder_status ENABLE TRIGGER guard_updated"
             )
             await conn.execute(
-                'DELETE FROM contracting_party WHERE id = $1',
+                "DELETE FROM contracting_party WHERE id = $1",
                 dir3_row["id"],
             )
             existing = pid_row
@@ -354,7 +354,7 @@ class PgEntryRepository:
         # Step 3: name fallback (only bare records with no identifiers)
         if not existing:
             existing = await conn.fetchrow(
-                'SELECT id FROM contracting_party'
+                "SELECT id FROM contracting_party"
                 " WHERE name = $1"
                 " AND dir3 IS NULL"
                 " AND platform_id IS NULL",
@@ -367,7 +367,7 @@ class PgEntryRepository:
 
         if existing:
             await conn.execute(
-                'UPDATE contracting_party SET'
+                "UPDATE contracting_party SET"
                 " name=$2, dir3=$3, nif=$4,"
                 " platform_id=$5, website_uri=$6,"
                 " contracting_party_type_code=$7,"
@@ -407,7 +407,7 @@ class PgEntryRepository:
             return uuid.UUID(str(existing["id"]))
 
         row = await conn.fetchrow(
-            'INSERT INTO contracting_party ('
+            "INSERT INTO contracting_party ("
             " name, dir3, nif, platform_id,"
             " website_uri,"
             " contracting_party_type_code,"
@@ -462,7 +462,7 @@ class PgEntryRepository:
         for lg in lot_groups:
             lot = lg.lot
             row = await conn.fetchrow(
-                'INSERT INTO procurement_project_lot'
+                "INSERT INTO procurement_project_lot"
                 " (contract_folder_status_id, lot_number,"
                 " name, total_amount,"
                 " tax_exclusive_amount, currency_id,"
@@ -483,7 +483,7 @@ class PgEntryRepository:
 
             for cpv in lg.cpv_codes:
                 await conn.execute(
-                    'INSERT INTO cpv_classification'
+                    "INSERT INTO cpv_classification"
                     " (contract_folder_status_id,"
                     " lot_id,"
                     " item_classification_code)"
@@ -494,7 +494,7 @@ class PgEntryRepository:
                 )
             for c in lg.criteria:
                 await conn.execute(
-                    'INSERT INTO awarding_criteria'
+                    "INSERT INTO awarding_criteria"
                     " (contract_folder_status_id,"
                     " lot_id,"
                     " criteria_type_code,"
@@ -512,7 +512,7 @@ class PgEntryRepository:
                 )
             for r in lg.requirements:
                 await conn.execute(
-                    'INSERT INTO qualification_requirement'
+                    "INSERT INTO qualification_requirement"
                     " (contract_folder_status_id,"
                     " lot_id, origin_type,"
                     " evaluation_criteria_type_code,"
@@ -535,7 +535,7 @@ class PgEntryRepository:
                 )
             for loc in lg.locations:
                 await conn.execute(
-                    'INSERT INTO realized_location'
+                    "INSERT INTO realized_location"
                     " (lot_id, nuts_code,"
                     " country_subentity,"
                     " country_code, city_name,"
@@ -566,7 +566,7 @@ class PgEntryRepository:
             )
 
             row = await conn.fetchrow(
-                'INSERT INTO tender_result'
+                "INSERT INTO tender_result"
                 " (contract_folder_status_id, lot_id,"
                 " result_code, description,"
                 " award_date,"
@@ -617,7 +617,7 @@ class PgEntryRepository:
 
             for wp in rg.winning_parties:
                 await conn.execute(
-                    'INSERT INTO winning_party'
+                    "INSERT INTO winning_party"
                     " (tender_result_id, identifier,"
                     " identifier_scheme, name,"
                     " nuts_code, city_name,"
@@ -638,7 +638,7 @@ class PgEntryRepository:
 
             if rg.contract is not None:
                 await conn.execute(
-                    'INSERT INTO contract'
+                    "INSERT INTO contract"
                     " (tender_result_id,"
                     " contract_number, issue_date)"
                     " VALUES ($1, $2, $3)",
@@ -655,7 +655,7 @@ class PgEntryRepository:
     ) -> None:
         for cpv in entry.cpv_folder:
             await conn.execute(
-                'INSERT INTO cpv_classification'
+                "INSERT INTO cpv_classification"
                 " (contract_folder_status_id,"
                 " item_classification_code)"
                 " VALUES ($1, $2)",
@@ -664,7 +664,7 @@ class PgEntryRepository:
             )
         for c in entry.criteria_folder:
             await conn.execute(
-                'INSERT INTO awarding_criteria'
+                "INSERT INTO awarding_criteria"
                 " (contract_folder_status_id,"
                 " criteria_type_code,"
                 " criteria_sub_type_code,"
@@ -680,7 +680,7 @@ class PgEntryRepository:
             )
         for g in entry.guarantees:
             await conn.execute(
-                'INSERT INTO financial_guarantee'
+                "INSERT INTO financial_guarantee"
                 " (contract_folder_status_id,"
                 " guarantee_type_code,"
                 " amount_rate,"
@@ -694,7 +694,7 @@ class PgEntryRepository:
             )
         for r in entry.requirements_folder:
             await conn.execute(
-                'INSERT INTO qualification_requirement'
+                "INSERT INTO qualification_requirement"
                 " (contract_folder_status_id,"
                 " origin_type,"
                 " evaluation_criteria_type_code,"
@@ -715,7 +715,7 @@ class PgEntryRepository:
             )
         for bc in entry.classifications:
             await conn.execute(
-                'INSERT INTO business_classification'
+                "INSERT INTO business_classification"
                 " (contract_folder_status_id,"
                 " code_value)"
                 " VALUES ($1, $2)",
@@ -724,7 +724,7 @@ class PgEntryRepository:
             )
         for ec in entry.conditions:
             await conn.execute(
-                'INSERT INTO execution_condition'
+                "INSERT INTO execution_condition"
                 " (contract_folder_status_id,"
                 " name,"
                 " execution_requirement_code,"
@@ -737,7 +737,7 @@ class PgEntryRepository:
             )
         for m in entry.modifications:
             await conn.execute(
-                'INSERT INTO contract_modification'
+                "INSERT INTO contract_modification"
                 " (contract_folder_status_id,"
                 " modification_number,"
                 " contract_id, note,"
@@ -772,7 +772,7 @@ class PgEntryRepository:
         for ng in notice_groups:
             n = ng.notice
             row = await conn.fetchrow(
-                'INSERT INTO valid_notice_info'
+                "INSERT INTO valid_notice_info"
                 " (contract_folder_status_id,"
                 " notice_type_code,"
                 " notice_issue_date)"
@@ -786,7 +786,7 @@ class PgEntryRepository:
 
             for sg in ng.statuses:
                 ps_row = await conn.fetchrow(
-                    'INSERT INTO publication_status'
+                    "INSERT INTO publication_status"
                     " (valid_notice_info_id,"
                     " publication_media_name)"
                     " VALUES ($1, $2)"
@@ -798,7 +798,7 @@ class PgEntryRepository:
 
                 for doc in sg.documents:
                     await conn.execute(
-                        'INSERT INTO document_reference'
+                        "INSERT INTO document_reference"
                         " (contract_folder_status_id,"
                         " publication_status_id,"
                         " source_type, filename,"
@@ -833,7 +833,7 @@ class PgEntryRepository:
     ) -> None:
         for doc in documents:
             await conn.execute(
-                'INSERT INTO document_reference'
+                "INSERT INTO document_reference"
                 " (contract_folder_status_id,"
                 " source_type, filename, uri,"
                 " document_hash,"

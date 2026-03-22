@@ -1,4 +1,5 @@
 """POST /buscar — unified search endpoint."""
+
 from __future__ import annotations
 
 import asyncpg
@@ -104,8 +105,7 @@ def _apply_cursor(
 
     if sort_key == "fecha" or (sort_key == "relevancia" and not body.q):
         conditions.append(
-            f"(v.fecha_publicacion, v.id)"
-            f" < (${idx}::timestamptz, ${idx + 1}::uuid)"
+            f"(v.fecha_publicacion, v.id) < (${idx}::timestamptz, ${idx + 1}::uuid)"
         )
         params.extend([sort_val, cursor_id])
         idx += 2
@@ -165,9 +165,7 @@ async def buscar(
     idx = 1
 
     if body.q:
-        conditions.append(
-            f"v.search_vector @@ plainto_tsquery('spanish', ${idx})"
-        )
+        conditions.append(f"v.search_vector @@ plainto_tsquery('spanish', ${idx})")
         params.append(body.q)
         idx += 1
 
@@ -185,9 +183,7 @@ async def buscar(
 
     rank_expr = "0 AS rank"
     if body.q:
-        rank_expr = (
-            "ts_rank(v.search_vector, plainto_tsquery('spanish', $1)) AS rank"
-        )
+        rank_expr = "ts_rank(v.search_vector, plainto_tsquery('spanish', $1)) AS rank"
 
     total = await conn.fetchval(
         f"SELECT count(*) FROM v_licitacion v {where}",
@@ -222,9 +218,7 @@ async def buscar(
     if has_next and rows:
         last = rows[-1]
         if sort_key == "fecha":
-            cursor_siguiente = encode_cursor(
-                last["fecha_publicacion"], last["id"]
-            )
+            cursor_siguiente = encode_cursor(last["fecha_publicacion"], last["id"])
         elif sort_key == "importe":
             cursor_siguiente = encode_cursor(
                 last["presupuesto_sin_iva"] or 0, last["id"]

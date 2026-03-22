@@ -1,4 +1,5 @@
 """GET /organo/{id} — contracting body profile."""
+
 from __future__ import annotations
 
 from uuid import UUID
@@ -84,9 +85,7 @@ async def get_organo(
             total_licitaciones=stats_row["total"] if stats_row else 0,
             importe_medio=stats_row["importe_medio"] if stats_row else None,
             cpv_frecuentes=[r["codigo"] for r in cpv_rows],
-            plazo_medio_adjudicacion_dias=(
-                round(plazo) if plazo is not None else None
-            ),
+            plazo_medio_adjudicacion_dias=(round(plazo) if plazo is not None else None),
         ),
         licitaciones_recientes=[
             LicitacionResumen(

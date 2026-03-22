@@ -1,4 +1,5 @@
 """Response schemas for search results."""
+
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -40,12 +41,8 @@ class LicitacionResumen(BaseModel):
     cpv_principal: str | None = Field(
         description="Codigo CPV principal (ej: 72212000 para desarrollo software)."
     )
-    num_licitadores: int | None = Field(
-        description="Numero de ofertas recibidas."
-    )
-    adjudicatario: str | None = Field(
-        description="Nombre de la empresa adjudicataria."
-    )
+    num_licitadores: int | None = Field(description="Numero de ofertas recibidas.")
+    adjudicatario: str | None = Field(description="Nombre de la empresa adjudicataria.")
     lugar: str | None = Field(description="Lugar de ejecucion (provincia/CCAA).")
     tiene_documentos: bool = Field(
         description="Indica si hay documentos (pliegos, resoluciones) disponibles."

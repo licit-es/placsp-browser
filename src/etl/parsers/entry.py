@@ -6,6 +6,22 @@ from datetime import datetime
 
 from lxml import etree
 
+from etl.parsers.contracting_party import ContractingPartyParser
+from etl.parsers.document import DocumentParser
+from etl.parsers.lot import LotBundle, LotParser
+from etl.parsers.modification import ModificationParser
+from etl.parsers.procurement_project import (
+    FolderProjectFields,
+    ProcurementProjectParser,
+)
+from etl.parsers.tender_result import ResultBundle, TenderResultParser
+from etl.parsers.tendering_process import TenderingProcessFields, TenderingProcessParser
+from etl.parsers.tendering_terms import (
+    TenderingTermsBundle,
+    TenderingTermsFields,
+    TenderingTermsParser,
+)
+from etl.parsers.valid_notice_info import ValidNoticeInfoParser
 from shared.codice.xml_helpers import find_child, find_first, text
 from shared.models.awarding_criteria import AwardingCriteriaWrite
 from shared.models.business_classification import BusinessClassificationWrite
@@ -32,19 +48,6 @@ from shared.models.status_change import StatusChangeWrite
 from shared.models.tender_result import TenderResultWrite
 from shared.models.valid_notice_info import ValidNoticeInfoWrite
 from shared.models.winning_party import WinningPartyWrite
-from etl.parsers.contracting_party import ContractingPartyParser
-from etl.parsers.document import DocumentParser
-from etl.parsers.lot import LotBundle, LotParser
-from etl.parsers.modification import ModificationParser
-from etl.parsers.procurement_project import FolderProjectFields, ProcurementProjectParser
-from etl.parsers.tender_result import ResultBundle, TenderResultParser
-from etl.parsers.tendering_process import TenderingProcessFields, TenderingProcessParser
-from etl.parsers.tendering_terms import (
-    TenderingTermsBundle,
-    TenderingTermsFields,
-    TenderingTermsParser,
-)
-from etl.parsers.valid_notice_info import ValidNoticeInfoParser
 
 _PLACEHOLDER = uuid.UUID(int=0)
 

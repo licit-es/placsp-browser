@@ -1,4 +1,5 @@
 """Response schemas for GET /licitacion/{id} detail endpoint."""
+
 from __future__ import annotations
 
 from datetime import date, datetime, time
@@ -43,9 +44,7 @@ class RequisitoSolvencia(BaseModel):
     situacion_personal: str | None = Field(
         description="Requisitos de situacion personal."
     )
-    anios_experiencia: int | None = Field(
-        description="Anos de experiencia exigidos."
-    )
+    anios_experiencia: int | None = Field(description="Anos de experiencia exigidos.")
     num_empleados: int | None = Field(
         description="Numero minimo de empleados exigidos."
     )

@@ -16,15 +16,15 @@ from typing import Any
 import asyncpg
 import httpx
 
-from shared.config import Settings
-from shared.enums import ROOT_FILENAMES, FeedType
-from shared.logger import get_logger
-from shared.models.etl import SyncResult
 from etl.parsers.page import PageParser
 from etl.repositories.entry_repo import PgEntryRepository
 from etl.repositories.failed_entry_repo import PgFailedEntryRepository
 from etl.repositories.sync_state_repo import PgSyncStateRepository
 from etl.services.feed_reader import FeedReaderService
+from shared.config import Settings
+from shared.enums import ROOT_FILENAMES, FeedType
+from shared.logger import get_logger
+from shared.models.etl import SyncResult
 
 logger = get_logger(__name__)
 

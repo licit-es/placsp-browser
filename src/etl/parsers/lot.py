@@ -10,13 +10,13 @@ from dataclasses import dataclass, field
 
 from lxml import etree
 
-from shared.codice.xml_helpers import find_all, find_children, find_first, text
 from etl.parsers.procurement_project import LotProjectFields, ProcurementProjectParser
 from etl.parsers.tendering_terms import (
     CriteriaData,
     RequirementData,
     TenderingTermsParser,
 )
+from shared.codice.xml_helpers import find_all, find_children, find_first, text
 
 
 @dataclass

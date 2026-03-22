@@ -7,16 +7,16 @@ from datetime import datetime
 
 import httpx
 
-from shared.config import Settings
-from shared.logger import get_logger
-from shared.models.etl import EntryResult, SyncResult
-from shared.models.parsed_page import ParsedEntry, ParsedPage
 from etl.parsers.page import PageParser
 from etl.repositories.protocols import (
     EntryRepository,
     FailedEntryRepository,
     SyncStateRepository,
 )
+from shared.config import Settings
+from shared.logger import get_logger
+from shared.models.etl import EntryResult, SyncResult
+from shared.models.parsed_page import ParsedEntry, ParsedPage
 
 logger = get_logger(__name__)
 

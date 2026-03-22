@@ -6,12 +6,12 @@ import httpx
 import pytest
 import respx
 
-from shared.config import Settings
 from etl.services.catalog_updater import (
     CatalogUpdaterService,
     _extract_gc_links,
     _parse_genericode,
 )
+from shared.config import Settings
 
 _SETTINGS = Settings(
     database_url="postgresql://test:test@localhost/test",

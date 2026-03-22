@@ -9,7 +9,6 @@ from pathlib import Path
 import httpx
 import pytest
 
-from shared.enums import ROOT_FILENAMES
 from etl.handlers.feed_reader import (
     LocalFeedTransport,
     _build_event,
@@ -17,6 +16,7 @@ from etl.handlers.feed_reader import (
     resolve_pairs,
     run_feeds_parallel,
 )
+from shared.enums import ROOT_FILENAMES
 from shared.models.etl import SyncResult
 
 

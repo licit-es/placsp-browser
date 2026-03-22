@@ -9,6 +9,7 @@ import asyncpg
 import pytest
 import pytest_asyncio
 
+from etl.repositories.entry_repo import PgEntryRepository
 from shared.models.cpv_classification import CpvClassificationWrite
 from shared.models.document_reference import DocumentReferenceWrite
 from shared.models.parsed_page import (
@@ -22,7 +23,6 @@ from shared.models.publication_status import PublicationStatusWrite
 from shared.models.tender_result import TenderResultWrite
 from shared.models.valid_notice_info import ValidNoticeInfoWrite
 from shared.models.winning_party import WinningPartyWrite
-from etl.repositories.entry_repo import PgEntryRepository
 from tests.etl.builders.entities import (
     build_contract_folder_status,
     build_contracting_party,
@@ -41,7 +41,7 @@ _LATER = _NOW + timedelta(hours=1)
 async def pool():
     p = await asyncpg.create_pool(DATABASE_URL)
     yield p
-    await p.execute('TRUNCATE contract_folder_status, contracting_party CASCADE')
+    await p.execute("TRUNCATE contract_folder_status, contracting_party CASCADE")
     await p.close()
 
 
@@ -113,7 +113,7 @@ class TestFolderUpsert:
         await repo.process_entry(entry)
         row = await pool.fetchrow(
             "SELECT status_code, feed_type"
-            ' FROM contract_folder_status'
+            " FROM contract_folder_status"
             " WHERE entry_id = $1",
             entry.envelope.entry_id,
         )
@@ -127,7 +127,7 @@ class TestContractingParty:
         entry = _entry()
         await repo.process_entry(entry)
         row = await pool.fetchrow(
-            'SELECT name, dir3 FROM contracting_party WHERE dir3 = $1',
+            "SELECT name, dir3 FROM contracting_party WHERE dir3 = $1",
             entry.contracting_party.dir3,
         )
         assert row is not None
@@ -139,7 +139,7 @@ class TestContractingParty:
         await repo.process_entry(entry)
         row = await pool.fetchrow(
             "SELECT contracting_party_id"
-            ' FROM contract_folder_status'
+            " FROM contract_folder_status"
             " WHERE entry_id = $1",
             entry.envelope.entry_id,
         )
@@ -161,7 +161,7 @@ class TestContractingParty:
         await repo.process_entry(e1)
         await repo.process_entry(e2)
         count = await pool.fetchval(
-            'SELECT count(*) FROM contracting_party WHERE dir3 = $1',
+            "SELECT count(*) FROM contracting_party WHERE dir3 = $1",
             "EA0003089",
         )
         assert count == 1
@@ -191,7 +191,7 @@ class TestContractingParty:
             )
         )
         count = await pool.fetchval(
-            'SELECT count(*) FROM contracting_party WHERE platform_id = $1',
+            "SELECT count(*) FROM contracting_party WHERE platform_id = $1",
             "PLAT001",
         )
         assert count == 1
@@ -222,12 +222,12 @@ class TestContractingParty:
             )
         )
         count = await pool.fetchval(
-            'SELECT count(*) FROM contracting_party WHERE platform_id = $1',
+            "SELECT count(*) FROM contracting_party WHERE platform_id = $1",
             "PLAT002",
         )
         assert count == 1
         row = await pool.fetchrow(
-            'SELECT dir3, name FROM contracting_party WHERE platform_id = $1',
+            "SELECT dir3, name FROM contracting_party WHERE platform_id = $1",
             "PLAT002",
         )
         assert row["dir3"] == "EA0000002"
@@ -251,7 +251,7 @@ class TestContractingParty:
             )
         )
         count = await pool.fetchval(
-            'SELECT count(*) FROM contracting_party'
+            "SELECT count(*) FROM contracting_party"
             " WHERE name = $1"
             " AND dir3 IS NULL"
             " AND platform_id IS NULL",
@@ -278,7 +278,7 @@ class TestContractingParty:
             )
         )
         row = await pool.fetchrow(
-            'SELECT name FROM contracting_party WHERE dir3 = $1',
+            "SELECT name FROM contracting_party WHERE dir3 = $1",
             "EA0003089",
         )
         assert row["name"] == "Current"
@@ -308,7 +308,7 @@ class TestContractingParty:
             )
         )
         # Verify 2 distinct rows exist
-        pre_count = await pool.fetchval('SELECT count(*) FROM contracting_party')
+        pre_count = await pool.fetchval("SELECT count(*) FROM contracting_party")
         assert pre_count == 2
 
         # Entry 3: party with both identifiers -> triggers merge
@@ -322,11 +322,11 @@ class TestContractingParty:
             )
         )
         # Should be a single party now
-        post_count = await pool.fetchval('SELECT count(*) FROM contracting_party')
+        post_count = await pool.fetchval("SELECT count(*) FROM contracting_party")
         assert post_count == 1
 
         merged = await pool.fetchrow(
-            'SELECT name, dir3, platform_id FROM contracting_party'
+            "SELECT name, dir3, platform_id FROM contracting_party"
         )
         assert merged["dir3"] == "EA9999999"
         assert merged["platform_id"] == "PLAT_MERGE"
@@ -335,7 +335,7 @@ class TestContractingParty:
         # All 3 folders should reference the surviving party
         linked = await pool.fetchval(
             "SELECT count(DISTINCT contracting_party_id)"
-            ' FROM contract_folder_status'
+            " FROM contract_folder_status"
             " WHERE contracting_party_id IS NOT NULL"
         )
         assert linked == 1
@@ -357,7 +357,7 @@ class TestContractingParty:
 
         assert result.status == "ok"
         row = await pool.fetchrow(
-            'SELECT contracting_party_id FROM contract_folder_status'
+            "SELECT contracting_party_id FROM contract_folder_status"
             " WHERE entry_id = $1",
             "test://fail1",
         )
@@ -366,8 +366,8 @@ class TestContractingParty:
 
         # StatusChange should still be recorded
         sc = await pool.fetchval(
-            'SELECT count(*) FROM status_change sc'
-            ' JOIN contract_folder_status cfs ON sc.contract_folder_status_id = cfs.id'
+            "SELECT count(*) FROM status_change sc"
+            " JOIN contract_folder_status cfs ON sc.contract_folder_status_id = cfs.id"
             " WHERE cfs.entry_id = $1",
             "test://fail1",
         )
@@ -413,7 +413,7 @@ class TestChildReplacement:
                 lot_groups=[lot1],
             )
         )
-        count = await pool.fetchval('SELECT count(*) FROM procurement_project_lot')
+        count = await pool.fetchval("SELECT count(*) FROM procurement_project_lot")
         assert count == 1
 
     @pytest.mark.asyncio
@@ -434,9 +434,9 @@ class TestChildReplacement:
         )
         await repo.process_entry(_entry(updated=_NOW, result_groups=[rg]))
         await repo.process_entry(_entry(updated=_LATER, result_groups=[]))
-        count = await pool.fetchval('SELECT count(*) FROM tender_result')
+        count = await pool.fetchval("SELECT count(*) FROM tender_result")
         assert count == 0
-        wp_count = await pool.fetchval('SELECT count(*) FROM winning_party')
+        wp_count = await pool.fetchval("SELECT count(*) FROM winning_party")
         assert wp_count == 0
 
 
@@ -465,7 +465,7 @@ class TestDocumentPreservation:
         row = await pool.fetchrow(
             "SELECT dd.status"
             ' FROM "DocumentDownload" dd'
-            ' JOIN document_reference dr'
+            " JOIN document_reference dr"
             " ON dd.document_reference_id = dr.id"
             " WHERE dr.uri = $1",
             "https://example.com/pliego.pdf",
@@ -506,7 +506,7 @@ class TestDocumentPreservation:
         row = await pool.fetchrow(
             "SELECT dd.status"
             ' FROM "DocumentDownload" dd'
-            ' JOIN document_reference dr'
+            " JOIN document_reference dr"
             " ON dd.document_reference_id = dr.id"
             " WHERE dr.uri = $1",
             "https://example.com/pliego.pdf",
@@ -555,7 +555,7 @@ class TestDocumentPreservation:
         row = await pool.fetchrow(
             "SELECT dd.status"
             ' FROM "DocumentDownload" dd'
-            ' JOIN document_reference dr'
+            " JOIN document_reference dr"
             " ON dd.document_reference_id = dr.id"
             " WHERE dr.uri = $1",
             "https://example.com/anuncio.pdf",
@@ -567,7 +567,7 @@ class TestStatusChange:
     @pytest.mark.asyncio
     async def test_status_logged(self, repo: PgEntryRepository, pool) -> None:
         await repo.process_entry(_entry())
-        count = await pool.fetchval('SELECT count(*) FROM status_change')
+        count = await pool.fetchval("SELECT count(*) FROM status_change")
         assert count == 1
 
     @pytest.mark.asyncio
@@ -576,7 +576,7 @@ class TestStatusChange:
     ) -> None:
         await repo.process_entry(_entry(updated=_NOW))
         await repo.process_entry(_entry(updated=_LATER))
-        count = await pool.fetchval('SELECT count(*) FROM status_change')
+        count = await pool.fetchval("SELECT count(*) FROM status_change")
         assert count == 2
 
 
@@ -634,20 +634,20 @@ class TestFullParsedEntry:
         result = await repo.process_entry(entry)
         assert result.status == "ok"
 
-        lot_count = await pool.fetchval('SELECT count(*) FROM procurement_project_lot')
+        lot_count = await pool.fetchval("SELECT count(*) FROM procurement_project_lot")
         assert lot_count == 1
 
-        tr_count = await pool.fetchval('SELECT count(*) FROM tender_result')
+        tr_count = await pool.fetchval("SELECT count(*) FROM tender_result")
         assert tr_count == 1
 
-        tr = await pool.fetchrow('SELECT lot_id FROM tender_result')
+        tr = await pool.fetchrow("SELECT lot_id FROM tender_result")
         assert tr["lot_id"] is not None
 
-        wp_count = await pool.fetchval('SELECT count(*) FROM winning_party')
+        wp_count = await pool.fetchval("SELECT count(*) FROM winning_party")
         assert wp_count == 1
 
-        doc_count = await pool.fetchval('SELECT count(*) FROM document_reference')
+        doc_count = await pool.fetchval("SELECT count(*) FROM document_reference")
         assert doc_count == 1
 
-        cpv_count = await pool.fetchval('SELECT count(*) FROM cpv_classification')
+        cpv_count = await pool.fetchval("SELECT count(*) FROM cpv_classification")
         assert cpv_count == 2

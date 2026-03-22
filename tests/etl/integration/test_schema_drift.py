@@ -35,7 +35,10 @@ DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
 # Mapping: table_name -> (WriteModel, set of DB-generated columns to exclude from Write)
 TABLE_MODEL_MAP: dict[str, tuple[type, set[str]]] = {
     "contracting_party": (ContractingPartyWrite, {"id"}),
-    "contract_folder_status": (ContractFolderStatusWrite, {"id", "created_at", "search_vector"}),
+    "contract_folder_status": (
+        ContractFolderStatusWrite,
+        {"id", "created_at", "search_vector"},
+    ),
     "procurement_project_lot": (ProcurementProjectLotWrite, {"id"}),
     "cpv_classification": (CpvClassificationWrite, {"id"}),
     "realized_location": (RealizedLocationWrite, {"id"}),

@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from shared.codice.xml_helpers import get_entries, parse_xml
 from etl.parsers.entry import EntryParser
+from shared.codice.xml_helpers import get_entries, parse_xml
 
 FIXTURES = Path(__file__).parent.parent.parent / "fixtures"
 

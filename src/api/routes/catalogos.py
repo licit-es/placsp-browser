@@ -1,4 +1,5 @@
 """GET /catalogos — discover valid filter values."""
+
 from __future__ import annotations
 
 import asyncpg

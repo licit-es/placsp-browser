@@ -1,4 +1,5 @@
 """GET /similares/{id} — structurally similar tenders."""
+
 from __future__ import annotations
 
 from uuid import UUID
@@ -67,9 +68,7 @@ async def get_similares(
         factor = rango_importe_pct / 100
         lo = float(amount) * (1 - factor)
         hi = float(amount) * (1 + factor)
-        conditions.append(
-            f"v.presupuesto_sin_iva BETWEEN ${idx} AND ${idx + 1}"
-        )
+        conditions.append(f"v.presupuesto_sin_iva BETWEEN ${idx} AND ${idx + 1}")
         params.extend([lo, hi])
         idx += 2
 

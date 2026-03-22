@@ -11,11 +11,11 @@ import pytest
 import respx
 from lxml import etree
 
+from etl.parsers.page import PageParser
+from etl.services.feed_reader import FeedReaderService
 from shared.config import Settings
 from shared.models.etl import EntryResult, EtlSyncStateRead
 from shared.models.parsed_page import ParsedPage
-from etl.parsers.page import PageParser
-from etl.services.feed_reader import FeedReaderService
 from tests.etl.builders.entities import build_deleted_entry, build_parsed_entry
 
 _NOW = datetime.now(UTC)

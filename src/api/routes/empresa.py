@@ -1,4 +1,5 @@
 """GET /empresa/{nif} — company profile from adjudication history."""
+
 from __future__ import annotations
 
 import asyncpg

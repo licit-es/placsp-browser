@@ -5,8 +5,14 @@ from datetime import date
 
 from lxml import etree
 
-from shared.codice.xml_helpers import find_all, find_children, find_first, text, text_date
 from etl.parsers.document import DocumentData
+from shared.codice.xml_helpers import (
+    find_all,
+    find_children,
+    find_first,
+    text,
+    text_date,
+)
 
 
 @dataclass

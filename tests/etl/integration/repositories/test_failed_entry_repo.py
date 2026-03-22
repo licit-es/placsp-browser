@@ -17,7 +17,7 @@ _NOW = datetime.now(UTC)
 async def pool():
     p = await asyncpg.create_pool(DATABASE_URL)
     yield p
-    await p.execute('TRUNCATE etl_failed_entries CASCADE')
+    await p.execute("TRUNCATE etl_failed_entries CASCADE")
     await p.close()
 
 
@@ -40,7 +40,7 @@ class TestRecordFailure:
             "Bad XML",
         )
         row = await pool.fetchrow(
-            'SELECT * FROM etl_failed_entries WHERE entry_id = $1',
+            "SELECT * FROM etl_failed_entries WHERE entry_id = $1",
             "test://entry1",
         )
         assert row is not None
@@ -72,7 +72,7 @@ class TestRecordFailure:
         )
         row = await pool.fetchrow(
             "SELECT retry_count, error_message"
-            ' FROM etl_failed_entries'
+            " FROM etl_failed_entries"
             " WHERE entry_id = $1",
             "test://entry1",
         )
@@ -92,7 +92,7 @@ class TestRecordFailure:
             "First",
         )
         row1 = await pool.fetchrow(
-            'SELECT last_failed_at FROM etl_failed_entries WHERE entry_id = $1',
+            "SELECT last_failed_at FROM etl_failed_entries WHERE entry_id = $1",
             "test://entry1",
         )
         await repo.record_failure(
@@ -104,7 +104,7 @@ class TestRecordFailure:
             "Second",
         )
         row2 = await pool.fetchrow(
-            'SELECT last_failed_at FROM etl_failed_entries WHERE entry_id = $1',
+            "SELECT last_failed_at FROM etl_failed_entries WHERE entry_id = $1",
             "test://entry1",
         )
         assert row2["last_failed_at"] >= row1["last_failed_at"]
@@ -123,7 +123,7 @@ class TestMarkResolved:
         )
         await repo.mark_resolved("outsiders", "test://entry1")
         row = await pool.fetchrow(
-            'SELECT resolved_at FROM etl_failed_entries WHERE entry_id = $1',
+            "SELECT resolved_at FROM etl_failed_entries WHERE entry_id = $1",
             "test://entry1",
         )
         assert row["resolved_at"] is not None
@@ -150,7 +150,7 @@ class TestMarkResolved:
             "New failure",
         )
         count = await pool.fetchval(
-            'SELECT count(*) FROM etl_failed_entries WHERE entry_id = $1',
+            "SELECT count(*) FROM etl_failed_entries WHERE entry_id = $1",
             "test://entry1",
         )
         assert count == 2

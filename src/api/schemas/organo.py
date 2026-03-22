@@ -1,4 +1,5 @@
 """Response schemas for GET /organo/{id}."""
+
 from __future__ import annotations
 
 from decimal import Decimal
@@ -18,9 +19,7 @@ class OrganoStats(BaseModel):
     importe_medio: Decimal | None = Field(
         description="Presupuesto medio de sus licitaciones (euros)."
     )
-    cpv_frecuentes: list[str] = Field(
-        description="Top 5 codigos CPV mas frecuentes."
-    )
+    cpv_frecuentes: list[str] = Field(description="Top 5 codigos CPV mas frecuentes.")
     plazo_medio_adjudicacion_dias: int | None = Field(
         description="Dias promedio entre publicacion y adjudicacion."
     )

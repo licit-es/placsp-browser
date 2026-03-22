@@ -1,4 +1,5 @@
 """FastAPI application for agent-optimized PLACSP procurement search."""
+
 from __future__ import annotations
 
 from collections.abc import AsyncIterator

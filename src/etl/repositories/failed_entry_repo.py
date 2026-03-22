@@ -21,14 +21,14 @@ class PgFailedEntryRepository:
         error_message: str,
     ) -> None:
         await self._pool.execute(
-            'INSERT INTO etl_failed_entries'
+            "INSERT INTO etl_failed_entries"
             " (feed_type, entry_id, entry_updated,"
             "  page_url, error_type, error_message)"
             " VALUES ($1, $2, $3, $4, $5, $6)"
             " ON CONFLICT (feed_type, entry_id)"
             " WHERE resolved_at IS NULL"
             " DO UPDATE SET"
-            '  retry_count = etl_failed_entries.retry_count + 1,'
+            "  retry_count = etl_failed_entries.retry_count + 1,"
             "  last_failed_at = now(),"
             "  error_message = EXCLUDED.error_message",
             feed_type,
@@ -45,7 +45,7 @@ class PgFailedEntryRepository:
         entry_id: str,
     ) -> None:
         await self._pool.execute(
-            'UPDATE etl_failed_entries'
+            "UPDATE etl_failed_entries"
             " SET resolved_at = now()"
             " WHERE feed_type = $1"
             " AND entry_id = $2"

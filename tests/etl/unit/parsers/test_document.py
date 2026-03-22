@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from shared.codice.xml_helpers import find_first, get_entries, parse_xml
 from etl.parsers.document import DocumentParser
+from shared.codice.xml_helpers import find_first, get_entries, parse_xml
 
 FIXTURES = Path(__file__).parent.parent.parent / "fixtures"
 

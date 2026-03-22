@@ -13,8 +13,14 @@ from shared.models.contract_modification import (
     ContractModificationWrite,
 )
 from shared.models.contracting_party import ContractingPartyRead, ContractingPartyWrite
-from shared.models.cpv_classification import CpvClassificationRead, CpvClassificationWrite
-from shared.models.document_reference import DocumentReferenceRead, DocumentReferenceWrite
+from shared.models.cpv_classification import (
+    CpvClassificationRead,
+    CpvClassificationWrite,
+)
+from shared.models.document_reference import (
+    DocumentReferenceRead,
+    DocumentReferenceWrite,
+)
 from shared.models.etl import (
     EntryResult,
     EtlFailedEntryRead,
@@ -22,17 +28,28 @@ from shared.models.etl import (
     EtlSyncStateRead,
     EtlSyncStateWrite,
 )
-from shared.models.execution_condition import ExecutionConditionRead, ExecutionConditionWrite
+from shared.models.execution_condition import (
+    ExecutionConditionRead,
+    ExecutionConditionWrite,
+)
 from shared.models.financial_guarantee import (
     FinancialGuaranteeRead,
     FinancialGuaranteeWrite,
 )
-from shared.models.parsed_page import DeletedEntry, EntryEnvelope, ParsedEntry, ParsedPage
+from shared.models.parsed_page import (
+    DeletedEntry,
+    EntryEnvelope,
+    ParsedEntry,
+    ParsedPage,
+)
 from shared.models.procurement_project_lot import (
     ProcurementProjectLotRead,
     ProcurementProjectLotWrite,
 )
-from shared.models.publication_status import PublicationStatusRead, PublicationStatusWrite
+from shared.models.publication_status import (
+    PublicationStatusRead,
+    PublicationStatusWrite,
+)
 from shared.models.qualification_requirement import (
     QualificationRequirementRead,
     QualificationRequirementWrite,

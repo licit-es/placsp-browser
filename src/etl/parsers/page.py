@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+from etl.parsers.entry import EntryParser
 from shared.codice.xml_helpers import (
     extract_next_link,
     get_deleted_entries,
@@ -9,7 +10,6 @@ from shared.codice.xml_helpers import (
     parse_xml,
 )
 from shared.models.parsed_page import DeletedEntry, ParsedPage
-from etl.parsers.entry import EntryParser
 
 NS_TOMBSTONE = "http://purl.org/atompub/tombstones/1.0"
 

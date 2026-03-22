@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from shared.codice.xml_helpers import find_children, find_first, get_entries, parse_xml
 from etl.parsers.tendering_terms import TenderingTermsParser
+from shared.codice.xml_helpers import find_children, find_first, get_entries, parse_xml
 
 FIXTURES = Path(__file__).parent.parent.parent / "fixtures"
 

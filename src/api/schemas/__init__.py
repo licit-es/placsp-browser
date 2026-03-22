@@ -1,4 +1,5 @@
 """API schemas — re-exports for backward-compatible imports."""
+
 from api.schemas.busqueda import FiltrosBusqueda, PeticionBusqueda
 from api.schemas.cursor import decode_cursor, encode_cursor
 from api.schemas.detalle import (

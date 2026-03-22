@@ -7,10 +7,10 @@ import re
 import httpx
 from lxml import etree
 
+from etl.repositories.protocols import CatalogRepository
 from shared.config import Settings
 from shared.logger import get_logger
 from shared.models.etl import CatalogUpdateResult
-from etl.repositories.protocols import CatalogRepository
 
 logger = get_logger(__name__)
 

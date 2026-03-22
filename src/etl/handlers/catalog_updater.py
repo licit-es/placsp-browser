@@ -8,10 +8,10 @@ from typing import Any
 import asyncpg
 import httpx
 
-from shared.config import Settings
-from shared.logger import get_logger
 from etl.repositories.catalog_repo import PgCatalogRepository
 from etl.services.catalog_updater import CatalogUpdaterService
+from shared.config import Settings
+from shared.logger import get_logger
 
 logger = get_logger(__name__)
 

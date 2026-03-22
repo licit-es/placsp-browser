@@ -1,4 +1,5 @@
 """Request schemas for POST /buscar."""
+
 from __future__ import annotations
 
 from datetime import date

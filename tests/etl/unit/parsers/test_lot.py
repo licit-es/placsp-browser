@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from shared.codice.xml_helpers import find_first, get_entries, parse_xml
 from etl.parsers.lot import LotParser
 from etl.parsers.procurement_project import ProcurementProjectParser
 from etl.parsers.tendering_terms import TenderingTermsParser
+from shared.codice.xml_helpers import find_first, get_entries, parse_xml
 
 FIXTURES = Path(__file__).parent.parent.parent / "fixtures"
 

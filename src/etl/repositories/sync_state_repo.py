@@ -20,7 +20,7 @@ class PgSyncStateRepository:
         page_url: str,
     ) -> EtlSyncStateRead:
         row = await self._pool.fetchrow(
-            'INSERT INTO etl_sync_state'
+            "INSERT INTO etl_sync_state"
             " (feed_type, year, page_url, status)"
             " VALUES ($1, $2, $3, 'pending')"
             " ON CONFLICT (feed_type, year, page_url) DO NOTHING"
@@ -31,7 +31,7 @@ class PgSyncStateRepository:
         )
         if row is None:
             row = await self._pool.fetchrow(
-                'SELECT * FROM etl_sync_state'
+                "SELECT * FROM etl_sync_state"
                 " WHERE feed_type = $1"
                 " AND year = $2"
                 " AND page_url = $3",
@@ -49,7 +49,7 @@ class PgSyncStateRepository:
         error_count: int,
     ) -> None:
         await self._pool.execute(
-            'UPDATE etl_sync_state'
+            "UPDATE etl_sync_state"
             " SET status = $2,"
             " entry_count = $3,"
             " error_count = $4,"
@@ -67,7 +67,7 @@ class PgSyncStateRepository:
         year: int,
     ) -> str | None:
         row = await self._pool.fetchrow(
-            'SELECT page_url FROM etl_sync_state'
+            "SELECT page_url FROM etl_sync_state"
             " WHERE feed_type = $1"
             " AND year = $2"
             " AND status IN ('in_progress', 'failed')"

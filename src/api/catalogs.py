@@ -3,6 +3,7 @@
 Loaded once at startup. Used by filter logic to accept human-readable
 labels and translate them to CODICE codes for indexed filtering.
 """
+
 from __future__ import annotations
 
 import asyncpg
@@ -27,9 +28,7 @@ async def load(pool: asyncpg.Pool) -> None:
     """Load all small catalogs into memory."""
     async with pool.acquire() as conn:
         for name, table in _TABLES.items():
-            rows = await conn.fetch(
-                f"SELECT code, description FROM {table}"
-            )
+            rows = await conn.fetch(f"SELECT code, description FROM {table}")
             cache: dict[str, str] = {}
             for r in rows:
                 if r["description"]:
