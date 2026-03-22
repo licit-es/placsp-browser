@@ -1,0 +1,438 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+      xmlns:at="http://purl.org/atompub/tombstones/1.0"
+      xmlns:cac="urn:dgpe:names:draft:codice:schema:xsd:CommonAggregateComponents-2"
+      xmlns:cac-place-ext="urn:dgpe:names:draft:codice-place-ext:schema:xsd:CommonAggregateComponents-2"
+      xmlns:cbc="urn:dgpe:names:draft:codice:schema:xsd:CommonBasicComponents-2"
+      xmlns:cbc-place-ext="urn:dgpe:names:draft:codice-place-ext:schema:xsd:CommonBasicComponents-2">
+  <title>PLACSP Feed</title>
+  <link rel="next" href="https://example.com/feed?page=2"/>
+  <entry>
+    <id>https://contrataciondelestado.es/sindicacion/sindicacion_1044/entry_001</id>
+    <link href="https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&amp;idEvl=abc123"/>
+    <summary type="text">Suministro de material informático</summary>
+    <title>Expediente 2024/001 - Material informático</title>
+    <updated>2024-06-15T10:30:00.000+02:00</updated>
+    <cac-place-ext:ContractFolderStatus>
+      <cbc:ContractFolderID>2024/001</cbc:ContractFolderID>
+      <cbc-place-ext:ContractFolderStatusCode languageID="es" listURI="https://contrataciondelestado.es/codice/cl/2.04/SyndicationContractFolderStatusCode-2.04.gc">ADJ</cbc-place-ext:ContractFolderStatusCode>
+
+      <!-- LocatedContractingParty -->
+      <cac-place-ext:LocatedContractingParty>
+        <cbc:ContractingPartyTypeCode>2</cbc:ContractingPartyTypeCode>
+        <cbc:ActivityCode>L</cbc:ActivityCode>
+        <cac:Party>
+          <cbc:WebsiteURI>http://www.ayto-test.es</cbc:WebsiteURI>
+          <cac:PartyIdentification>
+            <cbc:ID schemeName="DIR3">EA0003089</cbc:ID>
+          </cac:PartyIdentification>
+          <cac:PartyIdentification>
+            <cbc:ID schemeName="NIF">S2800011H</cbc:ID>
+          </cac:PartyIdentification>
+          <cac:PartyIdentification>
+            <cbc:ID schemeName="ID_PLATAFORMA">PLAT001</cbc:ID>
+          </cac:PartyIdentification>
+          <cac:PartyName>
+            <cbc:Name>Ayuntamiento de Test</cbc:Name>
+          </cac:PartyName>
+          <cac:PostalAddress>
+            <cbc:CityName>Madrid</cbc:CityName>
+            <cbc:PostalZone>28001</cbc:PostalZone>
+            <cac:AddressLine>
+              <cbc:Line>Calle Mayor 1</cbc:Line>
+            </cac:AddressLine>
+            <cac:Country>
+              <cbc:IdentificationCode>ES</cbc:IdentificationCode>
+            </cac:Country>
+          </cac:PostalAddress>
+          <cac:Contact>
+            <cbc:Name>Juan García</cbc:Name>
+            <cbc:Telephone>910000001</cbc:Telephone>
+            <cbc:Telefax>910000002</cbc:Telefax>
+            <cbc:ElectronicMail>contratacion@test.es</cbc:ElectronicMail>
+          </cac:Contact>
+          <cac:AgentParty>
+            <cac:PartyIdentification>
+              <cbc:ID>121</cbc:ID>
+            </cac:PartyIdentification>
+            <cac:PartyName>
+              <cbc:Name>Comunidad de Madrid</cbc:Name>
+            </cac:PartyName>
+          </cac:AgentParty>
+        </cac:Party>
+        <cac-place-ext:ParentLocatedParty>
+          <cac:PartyName>
+            <cbc:Name>Ayuntamiento de Test</cbc:Name>
+          </cac:PartyName>
+          <cac-place-ext:ParentLocatedParty>
+            <cac:PartyName>
+              <cbc:Name>Ayuntamientos</cbc:Name>
+            </cac:PartyName>
+            <cac-place-ext:ParentLocatedParty>
+              <cac:PartyName>
+                <cbc:Name>Comunidad de Madrid</cbc:Name>
+              </cac:PartyName>
+            </cac-place-ext:ParentLocatedParty>
+          </cac-place-ext:ParentLocatedParty>
+        </cac-place-ext:ParentLocatedParty>
+        <cac:BuyerProfileURIID>https://contrataciondelestado.es/wps/poc?uri=deeplink:perfilContratante</cac:BuyerProfileURIID>
+      </cac-place-ext:LocatedContractingParty>
+
+      <!-- ProcurementProject -->
+      <cac:ProcurementProject>
+        <cbc:Name>Material informático para oficinas</cbc:Name>
+        <cbc:TypeCode listURI="https://contrataciondelestado.es/codice/cl/2.04/ContractCode-2.04.gc">1</cbc:TypeCode>
+        <cbc:SubTypeCode>1.1</cbc:SubTypeCode>
+        <cac:BudgetAmount>
+          <cbc:EstimatedOverallContractAmount currencyID="EUR">150000.00</cbc:EstimatedOverallContractAmount>
+          <cbc:TotalAmount currencyID="EUR">181500.00</cbc:TotalAmount>
+          <cbc:TaxExclusiveAmount currencyID="EUR">150000.00</cbc:TaxExclusiveAmount>
+        </cac:BudgetAmount>
+        <cac:RealizedLocation>
+          <cbc:CountrySubentityCode listURI="https://contrataciondelestado.es/codice/cl/2.04/NUTS-2021.gc">ES300</cbc:CountrySubentityCode>
+          <cbc:CountrySubentity>Madrid</cbc:CountrySubentity>
+        </cac:RealizedLocation>
+        <cac:PlannedPeriod>
+          <cbc:DurationMeasure unitCode="MON">12</cbc:DurationMeasure>
+          <cbc:StartDate>2024-07-01</cbc:StartDate>
+          <cbc:EndDate>2025-06-30</cbc:EndDate>
+        </cac:PlannedPeriod>
+        <cac:ContractExtension>
+          <cbc:OptionsDescription>Prórroga de 6 meses</cbc:OptionsDescription>
+        </cac:ContractExtension>
+        <cbc:MixContractIndicator>false</cbc:MixContractIndicator>
+        <cac:RequiredCommodityClassification>
+          <cbc:ItemClassificationCode listURI="https://contrataciondelestado.es/codice/cl/2.04/CPV2007-2.04.gc">30200000</cbc:ItemClassificationCode>
+        </cac:RequiredCommodityClassification>
+        <cac:RequiredCommodityClassification>
+          <cbc:ItemClassificationCode listURI="https://contrataciondelestado.es/codice/cl/2.04/CPV2007-2.04.gc">30230000</cbc:ItemClassificationCode>
+        </cac:RequiredCommodityClassification>
+      </cac:ProcurementProject>
+
+      <!-- TenderingProcess -->
+      <cac:TenderingProcess>
+        <cbc:ProcedureCode listURI="https://contrataciondelestado.es/codice/cl/2.04/SyndicationTenderingProcessCode-2.04.gc">1</cbc:ProcedureCode>
+        <cbc:UrgencyCode>1</cbc:UrgencyCode>
+        <cbc:SubmissionMethodCode>1</cbc:SubmissionMethodCode>
+        <cac:TenderSubmissionDeadlinePeriod>
+          <cbc:EndDate>2024-07-01</cbc:EndDate>
+          <cbc:EndTime>14:00:00</cbc:EndTime>
+          <cbc:Description>Plazo de presentación</cbc:Description>
+        </cac:TenderSubmissionDeadlinePeriod>
+        <cac:DocumentAvailabilityPeriod>
+          <cbc:EndDate>2024-06-30</cbc:EndDate>
+          <cbc:EndTime>23:59:59</cbc:EndTime>
+        </cac:DocumentAvailabilityPeriod>
+        <cbc:ContractingSystemCode>0</cbc:ContractingSystemCode>
+        <cbc:PartPresentationCode>1</cbc:PartPresentationCode>
+        <cac:AuctionTerms>
+          <cbc:AuctionConstraintIndicator>false</cbc:AuctionConstraintIndicator>
+        </cac:AuctionTerms>
+        <cbc:MaximumLotPresentationQuantity>2</cbc:MaximumLotPresentationQuantity>
+        <cbc:MaximumTendererAwardedLotsQuantity>1</cbc:MaximumTendererAwardedLotsQuantity>
+        <cbc:LotsCombinationContractingAuthorityRights>Reservado el derecho</cbc:LotsCombinationContractingAuthorityRights>
+        <cbc-place-ext:OverThresholdIndicator>true</cbc-place-ext:OverThresholdIndicator>
+      </cac:TenderingProcess>
+
+      <!-- TenderingTerms (folder-level) -->
+      <cac:TenderingTerms>
+        <cbc:RequiredCurriculaIndicator>false</cbc:RequiredCurriculaIndicator>
+        <cac:ProcurementLegislationDocumentReference>
+          <cbc:ID>2014/24/EU</cbc:ID>
+        </cac:ProcurementLegislationDocumentReference>
+        <cbc:VariantConstraintIndicator>false</cbc:VariantConstraintIndicator>
+        <cbc-place-ext:PriceRevisionFormulaID>Formula revisión</cbc-place-ext:PriceRevisionFormulaID>
+        <cbc:FundingProgramCode name="No hay financiación con fondos de la UE">NO-EU</cbc:FundingProgramCode>
+        <cac:FundingProgram>
+          <cbc:Description>Sin financiación europea</cbc:Description>
+        </cac:FundingProgram>
+        <cac:AppealTerms>
+          <cbc-place-ext:ReceivedAppealQuantity>0</cbc-place-ext:ReceivedAppealQuantity>
+        </cac:AppealTerms>
+        <cac:TenderRecipientParty>
+          <cbc:EndpointID>endpoint001</cbc:EndpointID>
+        </cac:TenderRecipientParty>
+        <cac:AllowedSubcontractTerms>
+          <cbc:Rate>30.00</cbc:Rate>
+          <cbc:Description>Subcontratación permitida hasta el 30%</cbc:Description>
+        </cac:AllowedSubcontractTerms>
+        <cbc-place-ext:NationalLegislationCode>LCSP</cbc-place-ext:NationalLegislationCode>
+
+        <!-- AwardingCriteria (folder-level) -->
+        <cac:AwardingTerms>
+          <cac:AwardingCriteria>
+            <cbc-place-ext:AwardingCriteriaTypeCode>OBJ</cbc-place-ext:AwardingCriteriaTypeCode>
+            <cbc:AwardingCriteriaTypeCode>1</cbc:AwardingCriteriaTypeCode>
+            <cbc:Description>Precio</cbc:Description>
+            <cbc:WeightNumeric>60</cbc:WeightNumeric>
+          </cac:AwardingCriteria>
+          <cac:AwardingCriteria>
+            <cbc-place-ext:AwardingCriteriaTypeCode>SUBJ</cbc-place-ext:AwardingCriteriaTypeCode>
+            <cbc:AwardingCriteriaTypeCode>2</cbc:AwardingCriteriaTypeCode>
+            <cbc:Description>Calidad técnica</cbc:Description>
+            <cbc:WeightNumeric>40</cbc:WeightNumeric>
+            <cbc:Note>Valoración según baremo</cbc:Note>
+          </cac:AwardingCriteria>
+        </cac:AwardingTerms>
+
+        <!-- FinancialGuarantee -->
+        <cac:RequiredFinancialGuarantee>
+          <cbc:GuaranteeTypeCode>1</cbc:GuaranteeTypeCode>
+          <cbc:AmountRate>5</cbc:AmountRate>
+          <cbc:LiabilityAmount currencyID="EUR">7500.00</cbc:LiabilityAmount>
+        </cac:RequiredFinancialGuarantee>
+
+        <!-- QualificationRequirement - Technical -->
+        <cac:TendererQualificationRequest>
+          <cbc:PersonalSituation>Capacidad de obrar</cbc:PersonalSituation>
+          <cac:TechnicalEvaluationCriteria>
+            <cbc:EvaluationCriteriaTypeCode>1</cbc:EvaluationCriteriaTypeCode>
+            <cbc:Description>Experiencia en suministro de material informático</cbc:Description>
+          </cac:TechnicalEvaluationCriteria>
+          <cac:FinancialEvaluationCriteria>
+            <cbc:EvaluationCriteriaTypeCode>1</cbc:EvaluationCriteriaTypeCode>
+            <cbc:Description>Solvencia económica</cbc:Description>
+            <cbc:ThresholdQuantity>100000</cbc:ThresholdQuantity>
+          </cac:FinancialEvaluationCriteria>
+          <cac:SpecificTendererRequirement>
+            <cbc:RequirementTypeCode>1</cbc:RequirementTypeCode>
+          </cac:SpecificTendererRequirement>
+        </cac:TendererQualificationRequest>
+
+        <!-- BusinessClassification -->
+        <cac-place-ext:RequiredBusinessClassification>
+          <cbc:ClassificationCategoryCode>C3-1</cbc:ClassificationCategoryCode>
+        </cac-place-ext:RequiredBusinessClassification>
+        <cac-place-ext:RequiredBusinessClassification>
+          <cbc:ClassificationCategoryCode>G*-2</cbc:ClassificationCategoryCode>
+        </cac-place-ext:RequiredBusinessClassification>
+
+        <!-- ExecutionCondition -->
+        <cac:ContractExecutionRequirement>
+          <cbc:Name>Condición medioambiental</cbc:Name>
+          <cbc:ExecutionRequirementCode>3</cbc:ExecutionRequirementCode>
+          <cbc:Description>Cumplimiento normativa medioambiental</cbc:Description>
+        </cac:ContractExecutionRequirement>
+      </cac:TenderingTerms>
+
+      <!-- Lots -->
+      <cac:ProcurementProjectLot>
+        <cbc:ID schemeName="ID_LOTE">1</cbc:ID>
+        <cac:ProcurementProject>
+          <cbc:Name>Lote 1: Ordenadores portátiles</cbc:Name>
+          <cac:BudgetAmount>
+            <cbc:TotalAmount currencyID="EUR">90000.00</cbc:TotalAmount>
+            <cbc:TaxExclusiveAmount currencyID="EUR">74380.17</cbc:TaxExclusiveAmount>
+          </cac:BudgetAmount>
+          <cac:RealizedLocation>
+            <cbc:CountrySubentityCode>ES300</cbc:CountrySubentityCode>
+            <cbc:CountrySubentity>Madrid</cbc:CountrySubentity>
+          </cac:RealizedLocation>
+          <cac:RequiredCommodityClassification>
+            <cbc:ItemClassificationCode>30213100</cbc:ItemClassificationCode>
+          </cac:RequiredCommodityClassification>
+        </cac:ProcurementProject>
+        <cac:TenderingTerms>
+          <cac:AwardingTerms>
+            <cac:AwardingCriteria>
+              <cbc-place-ext:AwardingCriteriaTypeCode>OBJ</cbc-place-ext:AwardingCriteriaTypeCode>
+              <cbc:AwardingCriteriaTypeCode>1</cbc:AwardingCriteriaTypeCode>
+              <cbc:Description>Precio del lote</cbc:Description>
+              <cbc:WeightNumeric>70</cbc:WeightNumeric>
+            </cac:AwardingCriteria>
+          </cac:AwardingTerms>
+          <cac:TendererQualificationRequest>
+            <cac:TechnicalEvaluationCriteria>
+              <cbc:EvaluationCriteriaTypeCode>1</cbc:EvaluationCriteriaTypeCode>
+              <cbc:Description>Experiencia en portátiles</cbc:Description>
+            </cac:TechnicalEvaluationCriteria>
+          </cac:TendererQualificationRequest>
+        </cac:TenderingTerms>
+      </cac:ProcurementProjectLot>
+      <cac:ProcurementProjectLot>
+        <cbc:ID schemeName="ID_LOTE">2</cbc:ID>
+        <cac:ProcurementProject>
+          <cbc:Name>Lote 2: Monitores</cbc:Name>
+          <cac:BudgetAmount>
+            <cbc:TotalAmount currencyID="EUR">60000.00</cbc:TotalAmount>
+            <cbc:TaxExclusiveAmount currencyID="EUR">49586.78</cbc:TaxExclusiveAmount>
+          </cac:BudgetAmount>
+          <cac:RealizedLocation>
+            <cbc:CountrySubentityCode>ES300</cbc:CountrySubentityCode>
+            <cbc:CountrySubentity>Madrid</cbc:CountrySubentity>
+            <cac:Address>
+              <cbc:CityName>Madrid</cbc:CityName>
+              <cbc:PostalZone>28001</cbc:PostalZone>
+              <cbc:CountrySubentityCode>ES300</cbc:CountrySubentityCode>
+              <cac:Country>
+                <cbc:IdentificationCode>ES</cbc:IdentificationCode>
+              </cac:Country>
+              <cac:AddressLine>
+                <cbc:Line>Calle Test 5</cbc:Line>
+              </cac:AddressLine>
+            </cac:Address>
+          </cac:RealizedLocation>
+          <cac:RequiredCommodityClassification>
+            <cbc:ItemClassificationCode>30231300</cbc:ItemClassificationCode>
+          </cac:RequiredCommodityClassification>
+        </cac:ProcurementProject>
+      </cac:ProcurementProjectLot>
+
+      <!-- TenderResult -->
+      <cac:TenderResult>
+        <cbc:ResultCode listURI="https://contrataciondelestado.es/codice/cl/2.04/TenderResultCode-2.04.gc">8</cbc:ResultCode>
+        <cbc:Description>Adjudicación definitiva</cbc:Description>
+        <cbc:AwardDate>2024-08-01</cbc:AwardDate>
+        <cbc:ReceivedTenderQuantity>5</cbc:ReceivedTenderQuantity>
+        <cbc:LowerTenderAmount currencyID="EUR">80000.00</cbc:LowerTenderAmount>
+        <cbc:HigherTenderAmount currencyID="EUR">140000.00</cbc:HigherTenderAmount>
+        <cbc:SMEAwardedIndicator>true</cbc:SMEAwardedIndicator>
+        <cbc:AbnormallyLowTendersIndicator>false</cbc:AbnormallyLowTendersIndicator>
+        <cbc:StartDate>2024-09-01</cbc:StartDate>
+        <cbc-place-ext:SMEsReceivedTenderQuantity>3</cbc-place-ext:SMEsReceivedTenderQuantity>
+        <cbc-place-ext:ReceivedForeignTendersQuantity>1</cbc-place-ext:ReceivedForeignTendersQuantity>
+        <cbc-place-ext:ReceivedForeignEUTendersQuantity>1</cbc-place-ext:ReceivedForeignEUTendersQuantity>
+        <cac:AwardedTenderedProject>
+          <cbc:ProcurementProjectLotID>1</cbc:ProcurementProjectLotID>
+          <cac:LegalMonetaryTotal>
+            <cbc:TaxExclusiveAmount currencyID="EUR">72000.00</cbc:TaxExclusiveAmount>
+            <cbc:PayableAmount currencyID="EUR">87120.00</cbc:PayableAmount>
+          </cac:LegalMonetaryTotal>
+        </cac:AwardedTenderedProject>
+        <cac:WinningParty>
+          <cac:PartyIdentification>
+            <cbc:ID schemeName="NIF">B12345678</cbc:ID>
+          </cac:PartyIdentification>
+          <cac:PartyName>
+            <cbc:Name>TechCorp S.L.</cbc:Name>
+          </cac:PartyName>
+          <cac:PostalAddress>
+            <cbc:CityName>Barcelona</cbc:CityName>
+            <cbc:PostalZone>08001</cbc:PostalZone>
+            <cbc:CountrySubentityCode>ES511</cbc:CountrySubentityCode>
+            <cac:Country>
+              <cbc:IdentificationCode>ES</cbc:IdentificationCode>
+            </cac:Country>
+          </cac:PostalAddress>
+        </cac:WinningParty>
+        <cac:WinningParty>
+          <cac:PartyIdentification>
+            <cbc:ID schemeName="NIF">B87654321</cbc:ID>
+          </cac:PartyIdentification>
+          <cac:PartyName>
+            <cbc:Name>InfoSystems S.A.</cbc:Name>
+          </cac:PartyName>
+        </cac:WinningParty>
+        <cac:Contract>
+          <cbc:ID>CTR-2024-001</cbc:ID>
+          <cbc:IssueDate>2024-09-01</cbc:IssueDate>
+        </cac:Contract>
+        <cac:SubcontractTerms>
+          <cbc:Rate>15.00</cbc:Rate>
+          <cbc:Description>Subcontratación parcial</cbc:Description>
+        </cac:SubcontractTerms>
+      </cac:TenderResult>
+      <cac:TenderResult>
+        <cbc:ResultCode>3</cbc:ResultCode>
+        <cbc:Description>Lote desierto</cbc:Description>
+        <cac:AwardedTenderedProject>
+          <cbc:ProcurementProjectLotID>2</cbc:ProcurementProjectLotID>
+        </cac:AwardedTenderedProject>
+      </cac:TenderResult>
+
+      <!-- Documents -->
+      <cac:LegalDocumentReference>
+        <cbc:ID>pliego_clausulas.pdf</cbc:ID>
+        <cac:Attachment>
+          <cac:ExternalReference>
+            <cbc:URI>https://contrataciondelestado.es/docs/pliego_clausulas.pdf</cbc:URI>
+            <cbc:DocumentHash>abc123hash</cbc:DocumentHash>
+          </cac:ExternalReference>
+        </cac:Attachment>
+      </cac:LegalDocumentReference>
+      <cac:TechnicalDocumentReference>
+        <cbc:ID>pliego_tecnico.pdf</cbc:ID>
+        <cac:Attachment>
+          <cac:ExternalReference>
+            <cbc:URI>https://contrataciondelestado.es/docs/pliego_tecnico.pdf</cbc:URI>
+            <cbc:DocumentHash>def456hash</cbc:DocumentHash>
+          </cac:ExternalReference>
+        </cac:Attachment>
+      </cac:TechnicalDocumentReference>
+      <cac:AdditionalDocumentReference>
+        <cbc:ID>anexo_i.pdf</cbc:ID>
+        <cac:Attachment>
+          <cac:ExternalReference>
+            <cbc:URI>https://contrataciondelestado.es/docs/anexo_i.pdf</cbc:URI>
+          </cac:ExternalReference>
+        </cac:Attachment>
+      </cac:AdditionalDocumentReference>
+      <cac-place-ext:GeneralDocument>
+        <cac-place-ext:GeneralDocumentDocumentReference>
+          <cbc:ID>acta_mesa.pdf</cbc:ID>
+          <cbc:DocumentTypeCode>2</cbc:DocumentTypeCode>
+          <cac:Attachment>
+            <cac:ExternalReference>
+              <cbc:URI>https://contrataciondelestado.es/docs/acta_mesa.pdf</cbc:URI>
+              <cbc:FileName>acta_mesa_contratacion.pdf</cbc:FileName>
+            </cac:ExternalReference>
+          </cac:Attachment>
+        </cac-place-ext:GeneralDocumentDocumentReference>
+      </cac-place-ext:GeneralDocument>
+
+      <!-- ValidNoticeInfo -->
+      <cac:ValidNoticeInfo>
+        <cbc-place-ext:NoticeTypeCode>DOC_CN</cbc-place-ext:NoticeTypeCode>
+        <cac:AdditionalNoticeLanguage>
+          <cbc:ID>es</cbc:ID>
+        </cac:AdditionalNoticeLanguage>
+        <cbc-place-ext:NoticeIssueDate>2024-06-01</cbc-place-ext:NoticeIssueDate>
+        <cac-place-ext:AdditionalPublicationStatus>
+          <cbc-place-ext:PublicationMediaName>Perfil del Contratante</cbc-place-ext:PublicationMediaName>
+          <cac-place-ext:AdditionalPublicationDocumentReference>
+            <cbc:IssueDate>2024-06-01</cbc:IssueDate>
+            <cbc:DocumentTypeCode>2</cbc:DocumentTypeCode>
+            <cac:Attachment>
+              <cac:ExternalReference>
+                <cbc:URI>https://contrataciondelestado.es/docs/anuncio.pdf</cbc:URI>
+                <cbc:FileName>anuncio_licitacion.pdf</cbc:FileName>
+              </cac:ExternalReference>
+            </cac:Attachment>
+          </cac-place-ext:AdditionalPublicationDocumentReference>
+        </cac-place-ext:AdditionalPublicationStatus>
+        <cac-place-ext:AdditionalPublicationStatus>
+          <cbc-place-ext:PublicationMediaName>BOE</cbc-place-ext:PublicationMediaName>
+        </cac-place-ext:AdditionalPublicationStatus>
+      </cac:ValidNoticeInfo>
+      <cac:ValidNoticeInfo>
+        <cbc-place-ext:NoticeTypeCode>DOC_CAN_ADJ</cbc-place-ext:NoticeTypeCode>
+        <cbc-place-ext:NoticeIssueDate>2024-08-15</cbc-place-ext:NoticeIssueDate>
+        <cac-place-ext:AdditionalPublicationStatus>
+          <cbc-place-ext:PublicationMediaName>Perfil del Contratante</cbc-place-ext:PublicationMediaName>
+        </cac-place-ext:AdditionalPublicationStatus>
+      </cac:ValidNoticeInfo>
+
+      <!-- ContractModification -->
+      <cac:ContractModification>
+        <cbc:ID>MOD-001</cbc:ID>
+        <cbc:ContractID>CTR-2024-001</cbc:ContractID>
+        <cbc:Note>Ampliación de plazo por causa justificada</cbc:Note>
+        <cac-place-ext:ContractModificationDuration>
+          <cbc:DurationMeasure unitCode="MON">3</cbc:DurationMeasure>
+        </cac-place-ext:ContractModificationDuration>
+        <cac-place-ext:FinalContractDuration>
+          <cbc:DurationMeasure unitCode="MON">15</cbc:DurationMeasure>
+        </cac-place-ext:FinalContractDuration>
+        <cac-place-ext:ContractModificationBudget>
+          <cbc:TaxExclusiveAmount currencyID="EUR">10000.00</cbc:TaxExclusiveAmount>
+        </cac-place-ext:ContractModificationBudget>
+        <cac-place-ext:FinalContractBudget>
+          <cbc:TaxExclusiveAmount currencyID="EUR">160000.00</cbc:TaxExclusiveAmount>
+        </cac-place-ext:FinalContractBudget>
+      </cac:ContractModification>
+
+      <!-- TED UUID -->
+      <cbc:UUID schemeName="TED">ted-uuid-001</cbc:UUID>
+    </cac-place-ext:ContractFolderStatus>
+  </entry>
+</feed>

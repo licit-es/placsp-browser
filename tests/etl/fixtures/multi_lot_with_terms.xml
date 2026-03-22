@@ -1,0 +1,203 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+      xmlns:at="http://purl.org/atompub/tombstones/1.0"
+      xmlns:cac="urn:dgpe:names:draft:codice:schema:xsd:CommonAggregateComponents-2"
+      xmlns:cac-place-ext="urn:dgpe:names:draft:codice-place-ext:schema:xsd:CommonAggregateComponents-2"
+      xmlns:cbc="urn:dgpe:names:draft:codice:schema:xsd:CommonBasicComponents-2"
+      xmlns:cbc-place-ext="urn:dgpe:names:draft:codice-place-ext:schema:xsd:CommonBasicComponents-2">
+  <title>PLACSP Feed</title>
+  <entry>
+    <id>https://contrataciondelestado.es/sindicacion/sindicacion_1044/entry_multilot</id>
+    <link href="https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&amp;idEvl=multilot"/>
+    <summary type="text">Contrato con múltiples lotes y TenderingTerms a nivel de lote</summary>
+    <title>Expediente multilote 2024/ML001</title>
+    <updated>2024-09-01T12:00:00.000+02:00</updated>
+    <cac-place-ext:ContractFolderStatus>
+      <cbc:ContractFolderID>2024/ML001</cbc:ContractFolderID>
+      <cbc-place-ext:ContractFolderStatusCode>EV</cbc-place-ext:ContractFolderStatusCode>
+
+      <cac-place-ext:LocatedContractingParty>
+        <cbc:ContractingPartyTypeCode>3</cbc:ContractingPartyTypeCode>
+        <cac:Party>
+          <cac:PartyIdentification>
+            <cbc:ID schemeName="DIR3">EA0008416</cbc:ID>
+          </cac:PartyIdentification>
+          <cac:PartyIdentification>
+            <cbc:ID schemeName="ID_OC_PLAT">PLAT_OC_002</cbc:ID>
+          </cac:PartyIdentification>
+          <cac:PartyName>
+            <cbc:Name>Diputación de Test</cbc:Name>
+          </cac:PartyName>
+          <cac:PostalAddress>
+            <cbc:CityName>Valencia</cbc:CityName>
+            <cbc:PostalZone>46007</cbc:PostalZone>
+            <cac:AddressLine>
+              <cbc:Line>Plaza del Ayuntamiento 1</cbc:Line>
+            </cac:AddressLine>
+            <cac:Country>
+              <cbc:IdentificationCode>ES</cbc:IdentificationCode>
+            </cac:Country>
+          </cac:PostalAddress>
+          <cac:Contact>
+            <cbc:Name>María López</cbc:Name>
+            <cbc:Telephone>960000001</cbc:Telephone>
+            <cbc:ElectronicMail>contratacion@diputacion-test.es</cbc:ElectronicMail>
+          </cac:Contact>
+        </cac:Party>
+        <cac-place-ext:ParentLocatedParty>
+          <cac:PartyName>
+            <cbc:Name>Diputación de Test</cbc:Name>
+          </cac:PartyName>
+          <cac:PartyIdentification>
+            <cbc:ID schemeName="DIR3">EA0008416</cbc:ID>
+          </cac:PartyIdentification>
+          <cac-place-ext:ParentLocatedParty>
+            <cac:PartyName>
+              <cbc:Name>Diputaciones</cbc:Name>
+            </cac:PartyName>
+          </cac-place-ext:ParentLocatedParty>
+        </cac-place-ext:ParentLocatedParty>
+      </cac-place-ext:LocatedContractingParty>
+
+      <cac:ProcurementProject>
+        <cbc:Name>Servicios de limpieza multicentro</cbc:Name>
+        <cbc:TypeCode>2</cbc:TypeCode>
+        <cac:BudgetAmount>
+          <cbc:EstimatedOverallContractAmount currencyID="EUR">500000.00</cbc:EstimatedOverallContractAmount>
+          <cbc:TotalAmount currencyID="EUR">605000.00</cbc:TotalAmount>
+          <cbc:TaxExclusiveAmount currencyID="EUR">500000.00</cbc:TaxExclusiveAmount>
+        </cac:BudgetAmount>
+        <cac:RealizedLocation>
+          <cbc:CountrySubentityCode>ES523</cbc:CountrySubentityCode>
+          <cbc:CountrySubentity>Valencia</cbc:CountrySubentity>
+        </cac:RealizedLocation>
+        <cac:PlannedPeriod>
+          <cbc:DurationMeasure unitCode="ANN">2</cbc:DurationMeasure>
+        </cac:PlannedPeriod>
+        <cac:RequiredCommodityClassification>
+          <cbc:ItemClassificationCode>90910000</cbc:ItemClassificationCode>
+        </cac:RequiredCommodityClassification>
+      </cac:ProcurementProject>
+
+      <cac:TenderingProcess>
+        <cbc:ProcedureCode>1</cbc:ProcedureCode>
+        <cbc:UrgencyCode>1</cbc:UrgencyCode>
+        <cbc:SubmissionMethodCode>1</cbc:SubmissionMethodCode>
+        <cac:TenderSubmissionDeadlinePeriod>
+          <cbc:EndDate>2024-10-01</cbc:EndDate>
+          <cbc:EndTime>14:00:00</cbc:EndTime>
+        </cac:TenderSubmissionDeadlinePeriod>
+      </cac:TenderingProcess>
+
+      <cac:TenderingTerms>
+        <cbc:FundingProgramCode name="FEDER">FEDER</cbc:FundingProgramCode>
+        <cac:AwardingTerms>
+          <cac:AwardingCriteria>
+            <cbc-place-ext:AwardingCriteriaTypeCode>OBJ</cbc-place-ext:AwardingCriteriaTypeCode>
+            <cbc:AwardingCriteriaTypeCode>1</cbc:AwardingCriteriaTypeCode>
+            <cbc:Description>Precio global</cbc:Description>
+            <cbc:WeightNumeric>50</cbc:WeightNumeric>
+          </cac:AwardingCriteria>
+        </cac:AwardingTerms>
+        <cac:RequiredFinancialGuarantee>
+          <cbc:GuaranteeTypeCode>1</cbc:GuaranteeTypeCode>
+          <cbc:AmountRate>5</cbc:AmountRate>
+        </cac:RequiredFinancialGuarantee>
+      </cac:TenderingTerms>
+
+      <!-- Lot 1 - with TenderingTerms -->
+      <cac:ProcurementProjectLot>
+        <cbc:ID schemeName="ID_LOTE">1</cbc:ID>
+        <cac:ProcurementProject>
+          <cbc:Name>Lote 1: Centro Norte</cbc:Name>
+          <cac:BudgetAmount>
+            <cbc:TotalAmount currencyID="EUR">200000.00</cbc:TotalAmount>
+            <cbc:TaxExclusiveAmount currencyID="EUR">165289.26</cbc:TaxExclusiveAmount>
+          </cac:BudgetAmount>
+          <cac:RealizedLocation>
+            <cbc:CountrySubentityCode>ES523</cbc:CountrySubentityCode>
+            <cbc:CountrySubentity>Valencia Norte</cbc:CountrySubentity>
+          </cac:RealizedLocation>
+          <cac:RequiredCommodityClassification>
+            <cbc:ItemClassificationCode>90911200</cbc:ItemClassificationCode>
+          </cac:RequiredCommodityClassification>
+        </cac:ProcurementProject>
+        <cac:TenderingTerms>
+          <cac:AwardingTerms>
+            <cac:AwardingCriteria>
+              <cbc-place-ext:AwardingCriteriaTypeCode>OBJ</cbc-place-ext:AwardingCriteriaTypeCode>
+              <cbc:AwardingCriteriaTypeCode>1</cbc:AwardingCriteriaTypeCode>
+              <cbc:Description>Precio lote norte</cbc:Description>
+              <cbc:WeightNumeric>60</cbc:WeightNumeric>
+            </cac:AwardingCriteria>
+            <cac:AwardingCriteria>
+              <cbc-place-ext:AwardingCriteriaTypeCode>SUBJ</cbc-place-ext:AwardingCriteriaTypeCode>
+              <cbc:AwardingCriteriaTypeCode>2</cbc:AwardingCriteriaTypeCode>
+              <cbc:Description>Plan de trabajo</cbc:Description>
+              <cbc:WeightNumeric>40</cbc:WeightNumeric>
+            </cac:AwardingCriteria>
+          </cac:AwardingTerms>
+          <cac:TendererQualificationRequest>
+            <cac:TechnicalEvaluationCriteria>
+              <cbc:EvaluationCriteriaTypeCode>1</cbc:EvaluationCriteriaTypeCode>
+              <cbc:Description>Experiencia en limpieza industrial</cbc:Description>
+            </cac:TechnicalEvaluationCriteria>
+          </cac:TendererQualificationRequest>
+        </cac:TenderingTerms>
+      </cac:ProcurementProjectLot>
+
+      <!-- Lot 2 - with TenderingTerms -->
+      <cac:ProcurementProjectLot>
+        <cbc:ID schemeName="ID_LOTE">2</cbc:ID>
+        <cac:ProcurementProject>
+          <cbc:Name>Lote 2: Centro Sur</cbc:Name>
+          <cac:BudgetAmount>
+            <cbc:TotalAmount currencyID="EUR">180000.00</cbc:TotalAmount>
+            <cbc:TaxExclusiveAmount currencyID="EUR">148760.33</cbc:TaxExclusiveAmount>
+          </cac:BudgetAmount>
+          <cac:RealizedLocation>
+            <cbc:CountrySubentityCode>ES523</cbc:CountrySubentityCode>
+            <cbc:CountrySubentity>Valencia Sur</cbc:CountrySubentity>
+          </cac:RealizedLocation>
+          <cac:RequiredCommodityClassification>
+            <cbc:ItemClassificationCode>90911200</cbc:ItemClassificationCode>
+          </cac:RequiredCommodityClassification>
+        </cac:ProcurementProject>
+        <cac:TenderingTerms>
+          <cac:AwardingTerms>
+            <cac:AwardingCriteria>
+              <cbc-place-ext:AwardingCriteriaTypeCode>OBJ</cbc-place-ext:AwardingCriteriaTypeCode>
+              <cbc:AwardingCriteriaTypeCode>1</cbc:AwardingCriteriaTypeCode>
+              <cbc:Description>Precio lote sur</cbc:Description>
+              <cbc:WeightNumeric>55</cbc:WeightNumeric>
+            </cac:AwardingCriteria>
+          </cac:AwardingTerms>
+        </cac:TenderingTerms>
+      </cac:ProcurementProjectLot>
+
+      <!-- Lot 3 - WITHOUT TenderingTerms (76% case) -->
+      <cac:ProcurementProjectLot>
+        <cbc:ID schemeName="ID_LOTE">3</cbc:ID>
+        <cac:ProcurementProject>
+          <cbc:Name>Lote 3: Centro Este</cbc:Name>
+          <cac:BudgetAmount>
+            <cbc:TotalAmount currencyID="EUR">120000.00</cbc:TotalAmount>
+            <cbc:TaxExclusiveAmount currencyID="EUR">99173.55</cbc:TaxExclusiveAmount>
+          </cac:BudgetAmount>
+          <cac:RequiredCommodityClassification>
+            <cbc:ItemClassificationCode>90911200</cbc:ItemClassificationCode>
+          </cac:RequiredCommodityClassification>
+        </cac:ProcurementProject>
+      </cac:ProcurementProjectLot>
+
+      <cac:LegalDocumentReference>
+        <cbc:ID>pcap.pdf</cbc:ID>
+        <cac:Attachment>
+          <cac:ExternalReference>
+            <cbc:URI>https://contrataciondelestado.es/docs/pcap_ml001.pdf</cbc:URI>
+          </cac:ExternalReference>
+        </cac:Attachment>
+      </cac:LegalDocumentReference>
+    </cac-place-ext:ContractFolderStatus>
+  </entry>
+</feed>

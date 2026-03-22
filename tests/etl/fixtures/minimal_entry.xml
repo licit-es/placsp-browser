@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+      xmlns:at="http://purl.org/atompub/tombstones/1.0"
+      xmlns:cac="urn:dgpe:names:draft:codice:schema:xsd:CommonAggregateComponents-2"
+      xmlns:cac-place-ext="urn:dgpe:names:draft:codice-place-ext:schema:xsd:CommonAggregateComponents-2"
+      xmlns:cbc="urn:dgpe:names:draft:codice:schema:xsd:CommonBasicComponents-2"
+      xmlns:cbc-place-ext="urn:dgpe:names:draft:codice-place-ext:schema:xsd:CommonBasicComponents-2">
+  <title>PLACSP Feed</title>
+  <entry>
+    <id>https://contrataciondelestado.es/sindicacion/sindicacion_643/entry_minimal</id>
+    <link href="https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&amp;idEvl=minimal"/>
+    <summary type="text">Licitación mínima</summary>
+    <title>Expediente mínimo</title>
+    <updated>2024-03-01T08:00:00.000+01:00</updated>
+    <cac-place-ext:ContractFolderStatus>
+      <cbc-place-ext:ContractFolderStatusCode>PUB</cbc-place-ext:ContractFolderStatusCode>
+
+      <cac-place-ext:LocatedContractingParty>
+        <cac:Party>
+          <cac:PartyName>
+            <cbc:Name>Organismo mínimo</cbc:Name>
+          </cac:PartyName>
+        </cac:Party>
+      </cac-place-ext:LocatedContractingParty>
+
+      <cac:ProcurementProject>
+        <cbc:Name>Servicio básico</cbc:Name>
+        <cbc:TypeCode>2</cbc:TypeCode>
+      </cac:ProcurementProject>
+
+      <cac:TenderingProcess>
+        <cbc:ProcedureCode>1</cbc:ProcedureCode>
+      </cac:TenderingProcess>
+    </cac-place-ext:ContractFolderStatus>
+  </entry>
+</feed>
