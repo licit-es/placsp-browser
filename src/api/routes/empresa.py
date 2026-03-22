@@ -17,7 +17,7 @@ router = APIRouter(tags=["Empresas"])
 )
 async def get_empresa(
     nif: str,
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]  # noqa: B008
+    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
 ) -> EmpresaDetalle:
     """Company profile with aggregated stats and recent adjudications."""
     stats_row = await conn.fetchrow(

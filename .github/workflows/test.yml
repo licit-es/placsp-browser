@@ -1,0 +1,85 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - run: uv python install 3.12
+
+      - run: uv sync --frozen --dev
+
+      - name: Ruff check
+        run: uv run ruff check .
+
+      - name: Ruff format
+        run: uv run ruff format --check .
+
+      - name: No inline noqa
+        run: |
+          if grep -rn '# noqa' src/ tests/ 2>/dev/null; then
+            echo "ERROR: Use per-file-ignores in pyproject.toml instead of inline noqa"
+            exit 1
+          fi
+
+      - name: Mypy
+        run: uv run mypy src/
+
+      - name: Unit tests
+        run: uv run pytest tests/etl/unit/ --cov=src --cov-branch --cov-fail-under=0
+
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: licit
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - run: uv python install 3.12
+
+      - run: uv sync --frozen --dev
+
+      - name: Apply schema + seed
+        run: ./schema/apply.sh
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/licit
+
+      - name: Integration tests
+        run: uv run pytest tests/etl/integration/ --cov=src --cov-branch --cov-fail-under=0
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/licit
+          ENVIRONMENT: ci

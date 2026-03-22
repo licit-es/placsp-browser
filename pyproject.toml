@@ -67,6 +67,9 @@ max-args = 7
 "src/etl/repositories/catalog_repo.py" = ["S608"]
 "src/etl/repositories/entry_repo.py" = ["S608"]
 "src/etl/services/feed_reader.py" = ["BLE001"]
+"src/api/routes/*.py" = ["B008", "S608", "BLE001"]
+"src/api/catalogs.py" = ["S608"]
+"src/api/routes/catalogos.py" = ["S608"]
 
 [tool.ruff.format]
 quote-style = "double"

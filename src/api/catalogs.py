@@ -28,7 +28,7 @@ async def load(pool: asyncpg.Pool) -> None:
     async with pool.acquire() as conn:
         for name, table in _TABLES.items():
             rows = await conn.fetch(
-                f"SELECT code, description FROM {table}"  # noqa: S608
+                f"SELECT code, description FROM {table}"
             )
             cache: dict[str, str] = {}
             for r in rows:

@@ -19,7 +19,7 @@ router = APIRouter(tags=["Organos"])
 )
 async def get_organo(
     organo_id: UUID,
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]  # noqa: B008
+    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
 ) -> OrganoDetalle:
     """Contracting body profile with stats and recent tenders."""
     # Use v_licitacion for a single row to get resolved organo fields

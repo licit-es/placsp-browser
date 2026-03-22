@@ -1,4 +1,3 @@
-# ruff: noqa: S608
 """GET /catalogos — discover valid filter values."""
 from __future__ import annotations
 
@@ -42,7 +41,7 @@ async def list_catalogos() -> dict[str, list[str]]:
 )
 async def get_catalogo(
     tipo: str,
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]  # noqa: B008
+    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
 ) -> dict[str, object]:
     """Return all values for a catalog type, for filter discovery."""
     table = _CATALOG_MAP.get(tipo)

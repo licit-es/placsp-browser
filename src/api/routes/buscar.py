@@ -1,4 +1,3 @@
-# ruff: noqa: S608
 """POST /buscar — unified search endpoint."""
 from __future__ import annotations
 
@@ -158,7 +157,7 @@ def _row_to_resumen(r: asyncpg.Record) -> LicitacionResumen:
 )
 async def buscar(
     body: PeticionBusqueda,
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]  # noqa: B008
+    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
 ) -> RespuestaBusqueda:
     """Unified search: free text + structured filters, cursor pagination."""
     conditions: list[str] = []
