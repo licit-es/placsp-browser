@@ -5,11 +5,16 @@ from datetime import datetime
 from etl.parsers.entry import EntryParser
 from shared.codice.xml_helpers import (
     extract_next_link,
+    find_first,
     get_deleted_entries,
     get_entries,
     parse_xml,
+    text,
 )
-from shared.models.parsed_page import DeletedEntry, ParsedPage
+from shared.logger import get_logger
+from shared.models.parsed_page import DeletedEntry, ParsedPage, ParseFailure
+
+logger = get_logger(__name__)
 
 NS_TOMBSTONE = "http://purl.org/atompub/tombstones/1.0"
 
@@ -22,9 +27,24 @@ class PageParser:
         root = parse_xml(content)
 
         entries = []
+        parse_failures: list[ParseFailure] = []
         for entry_elem in get_entries(root):
-            parsed = self._entry_parser.parse(entry_elem, feed_type)
-            entries.append(parsed)
+            try:
+                parsed = self._entry_parser.parse(entry_elem, feed_type)
+                entries.append(parsed)
+            except (ValueError, KeyError, TypeError, AttributeError) as exc:
+                entry_id = text(find_first(entry_elem, "id"))
+                logger.warning(
+                    "Entry parse failed entry_id=%s error=%s",
+                    entry_id,
+                    exc,
+                )
+                parse_failures.append(
+                    ParseFailure(
+                        entry_id=entry_id,
+                        error_message=str(exc),
+                    )
+                )
 
         deleted_entries = []
         for del_elem in get_deleted_entries(root):
@@ -38,5 +58,6 @@ class PageParser:
         return ParsedPage(
             entries=entries,
             deleted_entries=deleted_entries,
+            parse_failures=parse_failures,
             next_link=next_link,
         )

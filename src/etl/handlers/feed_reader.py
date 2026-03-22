@@ -295,7 +295,7 @@ async def _handle(event: dict[str, Any]) -> dict[str, Any]:
 
     if seed:
         fts = feed_types or list(_FEED_TYPES)
-        yrs = years or list(range(2016, datetime.now(UTC).year + 1))
+        yrs = years or list(range(2017, datetime.now(UTC).year + 1))
         pairs = [(ft, yr) for ft in fts for yr in sorted(yrs, reverse=True)]
         event["_tmp_base"] = Path(tempfile.mkdtemp(prefix="licit-seed-"))
     else:

@@ -94,6 +94,17 @@ class FeedReaderService:
             sync_state = await self._sync_repo.get_or_create(feed_type, year, url)
             await self._sync_repo.update_status(sync_state.id, "in_progress", 0, 0)
 
+            for pf in page.parse_failures:
+                await self._failed_repo.record_failure(
+                    feed_type,
+                    pf.entry_id or f"unknown:{url}",
+                    None,
+                    url,
+                    "parse_error",
+                    pf.error_message,
+                )
+            failed += len(page.parse_failures)
+
             page_ok, page_stale, page_failed = await self._process_entries(
                 entries, feed_type, url
             )
@@ -109,8 +120,10 @@ class FeedReaderService:
                 )
 
             logger.info(
-                "Page summary entries=%d deleted=%d ok=%d stale=%d failed=%d",
+                "Page summary entries=%d parse_failed=%d"
+                " deleted=%d ok=%d stale=%d failed=%d",
                 len(entries),
+                len(page.parse_failures),
                 len(page.deleted_entries),
                 page_ok,
                 page_stale,
@@ -214,9 +227,24 @@ class FeedReaderService:
             return_exceptions=True,
         )
 
-        for r in results:
+        for entry, r in zip(entries, results, strict=True):
             if isinstance(r, BaseException):
                 failed += 1
+                try:
+                    await self._failed_repo.record_failure(
+                        feed_type,
+                        entry.envelope.entry_id,
+                        entry.envelope.updated,
+                        page_url,
+                        "unexpected_error",
+                        str(r),
+                    )
+                except Exception:
+                    logger.warning(
+                        "Could not record failure entry_id=%s",
+                        entry.envelope.entry_id,
+                        exc_info=True,
+                    )
             elif r.status == "ok":
                 ok += 1
             elif r.status == "stale":

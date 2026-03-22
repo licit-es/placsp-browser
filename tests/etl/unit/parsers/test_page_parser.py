@@ -75,3 +75,67 @@ class TestMultiLotPage:
     def test_entry_has_three_lots(self, parser: PageParser) -> None:
         page = parser.parse(_load("multi_lot_with_terms.xml"), "outsiders")
         assert len(page.entries[0].lot_groups) == 3
+
+
+class TestParseFailureIsolation:
+    """A broken entry must not prevent parsing the rest of the page."""
+
+    _FEED_WITH_BAD_ENTRY = (
+        b'<?xml version="1.0" encoding="UTF-8"?>'
+        b'<feed xmlns="http://www.w3.org/2005/Atom"'
+        b'  xmlns:cac-place-ext='
+        b'"urn:dgpe:names:draft:codice-place-ext:schema:xsd:'
+        b'CommonAggregateComponents-2"'
+        b'  xmlns:cbc-place-ext='
+        b'"urn:dgpe:names:draft:codice-place-ext:schema:xsd:'
+        b'CommonBasicComponents-2"'
+        b'  xmlns:cac='
+        b'"urn:dgpe:names:draft:codice:schema:xsd:'
+        b'CommonAggregateComponents-2"'
+        b'  xmlns:cbc='
+        b'"urn:dgpe:names:draft:codice:schema:xsd:'
+        b'CommonBasicComponents-2">'
+        # Entry 1 — missing ContractFolderStatus → parse error
+        b"<entry>"
+        b"<id>broken_entry_001</id>"
+        b"<updated>2024-01-01T00:00:00+00:00</updated>"
+        b"</entry>"
+        # Entry 2 — valid minimal entry
+        b"<entry>"
+        b"<id>good_entry_002</id>"
+        b"<updated>2024-01-01T00:00:00+00:00</updated>"
+        b"<title>OK</title>"
+        b"<cac-place-ext:ContractFolderStatus>"
+        b"<cbc-place-ext:ContractFolderStatusCode>"
+        b"PUB"
+        b"</cbc-place-ext:ContractFolderStatusCode>"
+        b"<cac-place-ext:LocatedContractingParty>"
+        b"<cac:Party>"
+        b"<cac:PartyName><cbc:Name>Test</cbc:Name></cac:PartyName>"
+        b"</cac:Party>"
+        b"</cac-place-ext:LocatedContractingParty>"
+        b"<cac:ProcurementProject>"
+        b"<cbc:Name>Test</cbc:Name>"
+        b"<cbc:TypeCode>1</cbc:TypeCode>"
+        b"</cac:ProcurementProject>"
+        b"<cac:TenderingProcess>"
+        b"<cbc:ProcedureCode>1</cbc:ProcedureCode>"
+        b"</cac:TenderingProcess>"
+        b"</cac-place-ext:ContractFolderStatus>"
+        b"</entry>"
+        b"</feed>"
+    )
+
+    def test_good_entry_still_parsed(self, parser: PageParser) -> None:
+        page = parser.parse(self._FEED_WITH_BAD_ENTRY, "outsiders")
+        assert len(page.entries) == 1
+        assert page.entries[0].envelope.entry_id == "good_entry_002"
+
+    def test_bad_entry_recorded_as_failure(self, parser: PageParser) -> None:
+        page = parser.parse(self._FEED_WITH_BAD_ENTRY, "outsiders")
+        assert len(page.parse_failures) == 1
+        assert page.parse_failures[0].entry_id == "broken_entry_001"
+
+    def test_failure_has_error_message(self, parser: PageParser) -> None:
+        page = parser.parse(self._FEED_WITH_BAD_ENTRY, "outsiders")
+        assert "ContractFolderStatus" in page.parse_failures[0].error_message

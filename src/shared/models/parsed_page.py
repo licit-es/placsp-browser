@@ -78,7 +78,13 @@ class DeletedEntry(BaseModel):
     when: datetime | None = None
 
 
+class ParseFailure(BaseModel):
+    entry_id: str | None = None
+    error_message: str
+
+
 class ParsedPage(BaseModel):
     entries: list[ParsedEntry]
     deleted_entries: list[DeletedEntry]
+    parse_failures: list[ParseFailure] = []
     next_link: str | None = None
