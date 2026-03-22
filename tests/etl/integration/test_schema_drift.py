@@ -5,6 +5,7 @@ matches the model fields. Runs against the local Supabase instance.
 """
 
 import asyncio
+import os
 from collections.abc import Generator
 
 import asyncpg
@@ -30,7 +31,9 @@ from shared.models.tender_result import TenderResultWrite
 from shared.models.valid_notice_info import ValidNoticeInfoWrite
 from shared.models.winning_party import WinningPartyWrite
 
-DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL", "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+)
 
 # Mapping: table_name -> (WriteModel, set of DB-generated columns to exclude from Write)
 TABLE_MODEL_MAP: dict[str, tuple[type, set[str]]] = {

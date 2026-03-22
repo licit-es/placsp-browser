@@ -42,7 +42,7 @@ async def list_catalogos() -> dict[str, list[str]]:
 )
 async def get_catalogo(
     tipo: str,
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
 ) -> dict[str, object]:
     """Return all values for a catalog type, for filter discovery."""
     table = _CATALOG_MAP.get(tipo)

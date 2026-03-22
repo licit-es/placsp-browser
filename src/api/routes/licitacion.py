@@ -29,7 +29,7 @@ router = APIRouter(tags=["Licitaciones"])
 )
 async def get_licitacion(
     licitacion_id: UUID,
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
 ) -> LicitacionDetalle:
     """Return full tender detail with nested criterios, solvencia, lotes, docs."""
     row = await conn.fetchrow("SELECT * FROM v_licitacion WHERE id = $1", licitacion_id)

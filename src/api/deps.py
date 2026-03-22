@@ -10,12 +10,12 @@ from fastapi import Request
 
 async def get_pool(request: Request) -> asyncpg.Pool:
     """Return the application-wide connection pool."""
-    pool: asyncpg.Pool = request.app.state.pool  # type: ignore[assignment]
+    pool: asyncpg.Pool = request.app.state.pool
     return pool
 
 
 async def get_conn(request: Request) -> AsyncIterator[asyncpg.Connection]:
     """Acquire a connection from the pool, release on exit."""
-    pool: asyncpg.Pool = request.app.state.pool  # type: ignore[assignment]
+    pool: asyncpg.Pool = request.app.state.pool
     async with pool.acquire() as conn:
         yield conn

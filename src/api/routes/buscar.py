@@ -157,7 +157,7 @@ def _row_to_resumen(r: asyncpg.Record) -> LicitacionResumen:
 )
 async def buscar(
     body: PeticionBusqueda,
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
 ) -> RespuestaBusqueda:
     """Unified search: free text + structured filters, cursor pagination."""
     conditions: list[str] = []

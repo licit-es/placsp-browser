@@ -21,7 +21,7 @@ router = APIRouter(tags=["Similares"])
 )
 async def get_similares(
     licitacion_id: UUID,
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
     estado: str | None = Query(None, description="Filtrar por estado"),
     rango_importe_pct: int = Query(50, ge=10, le=200),
     limit: int = Query(10, ge=1, le=50),

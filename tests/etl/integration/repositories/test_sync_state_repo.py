@@ -1,12 +1,16 @@
 """Integration tests for PgSyncStateRepository."""
 
+import os
+
 import asyncpg
 import pytest
 import pytest_asyncio
 
 from etl.repositories.sync_state_repo import PgSyncStateRepository
 
-DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL", "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+)
 
 
 @pytest_asyncio.fixture

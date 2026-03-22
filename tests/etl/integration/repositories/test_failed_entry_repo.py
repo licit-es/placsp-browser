@@ -1,5 +1,6 @@
 """Integration tests for PgFailedEntryRepository."""
 
+import os
 from datetime import UTC, datetime
 
 import asyncpg
@@ -8,7 +9,9 @@ import pytest_asyncio
 
 from etl.repositories.failed_entry_repo import PgFailedEntryRepository
 
-DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL", "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+)
 
 _NOW = datetime.now(UTC)
 

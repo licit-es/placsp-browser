@@ -1,12 +1,16 @@
 """Integration tests for PgCatalogRepository."""
 
+import os
+
 import asyncpg
 import pytest
 import pytest_asyncio
 
 from etl.repositories.catalog_repo import PgCatalogRepository
 
-DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL", "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+)
 
 _TABLES = [
     "cat_status_code",

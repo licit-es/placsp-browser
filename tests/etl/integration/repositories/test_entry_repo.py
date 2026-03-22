@@ -1,5 +1,6 @@
 """Integration tests for PgEntryRepository against local Supabase."""
 
+import os
 import uuid
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -30,7 +31,9 @@ from tests.etl.builders.entities import (
     build_parsed_entry,
 )
 
-DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL", "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+)
 
 _PH = uuid.UUID(int=0)
 _NOW = datetime.now(UTC)
