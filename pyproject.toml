@@ -69,6 +69,7 @@ max-args = 7
 "src/etl/services/feed_reader.py" = ["BLE001"]
 "src/api/routes/*.py" = ["B008", "S608", "BLE001"]
 "src/api/catalogs.py" = ["S608"]
+"src/api/inteligencia/*.py" = ["S608"]
 "src/api/routes/catalogos.py" = ["S608"]
 "src/shared/config.py" = ["S104"]
 "tests/api/*.py" = ["PLC0415"]

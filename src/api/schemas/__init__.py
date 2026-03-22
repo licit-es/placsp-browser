@@ -20,6 +20,11 @@ from api.schemas.empresa import (
 )
 from api.schemas.organo import OrganoDetalle, OrganoStats
 from api.schemas.resumen import CambioEstado, LicitacionResumen, RespuestaBusqueda
+from api.schemas.similares import (
+    EstadisticasSimilares,
+    LicitacionSimilar,
+    RespuestaSimilares,
+)
 
 __all__ = [
     "AdjudicatarioInfo",
@@ -29,9 +34,11 @@ __all__ = [
     "EmpresaDetalle",
     "EmpresaResumen",
     "EmpresaStats",
+    "EstadisticasSimilares",
     "FiltrosBusqueda",
     "LicitacionDetalle",
     "LicitacionResumen",
+    "LicitacionSimilar",
     "LoteResumen",
     "OrganoDetalle",
     "OrganoInfo",
@@ -40,6 +47,7 @@ __all__ = [
     "PeticionBusquedaEmpresas",
     "RequisitoSolvencia",
     "RespuestaBusqueda",
+    "RespuestaSimilares",
     "ResultadoInfo",
     "decode_cursor",
     "encode_cursor",

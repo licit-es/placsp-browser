@@ -86,3 +86,4 @@ CREATE INDEX IF NOT EXISTS idx_cfs_contract_folder_id ON contract_folder_status 
 CREATE INDEX IF NOT EXISTS idx_cfs_status_code ON contract_folder_status (status_code);
 CREATE INDEX IF NOT EXISTS idx_cfs_contracting_party_id ON contract_folder_status (contracting_party_id);
 CREATE INDEX IF NOT EXISTS idx_cfs_updated ON contract_folder_status (updated);
+CREATE INDEX IF NOT EXISTS idx_cfs_type_budget ON contract_folder_status (type_code, tax_exclusive_amount);
