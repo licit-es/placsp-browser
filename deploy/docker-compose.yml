@@ -78,6 +78,8 @@ services:
         condition: service_healthy
       schema-init:
         condition: service_completed_successfully
+    volumes:
+      - etl_logs:/var/log/etl
     restart: unless-stopped
 
   caddy:
@@ -114,6 +116,7 @@ services:
 
 volumes:
   pgdata:
+  etl_logs:
   caddy_data:
   caddy_config:
   pgadmin_data:
