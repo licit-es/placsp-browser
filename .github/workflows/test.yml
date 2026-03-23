@@ -102,28 +102,22 @@ jobs:
           [ -z "$DISCORD_WEBHOOK" ] && exit 0
 
           if [ "$QUALITY" = "success" ] && [ "$INTEGRATION" = "success" ]; then
-            COLOR=3066993
-            TITLE="✅ Tests passed"
+            TITLE="✅ Tests passed"; COLOR=3066993
           else
-            COLOR=15158332
-            TITLE="❌ Tests failed"
+            TITLE="❌ Tests failed"; COLOR=15158332
           fi
 
           SHORT_SHA="${COMMIT_SHA:0:7}"
-          # Sanitize commit message for JSON (first line only, escape quotes)
-          FIRST_LINE=$(echo "$COMMIT_MSG" | head -1 | sed 's/"/\\"/g' | cut -c1-80)
+          FIRST_LINE=$(echo "$COMMIT_MSG" | head -1 | cut -c1-80)
 
-          python3 -c "
-          import json, urllib.request, os
-          payload = json.dumps({'embeds': [{'title': os.environ['TITLE'],
-            'url': os.environ['RUN_URL'], 'color': int(os.environ['COLOR']),
-            'fields': [
-              {'name': 'Commit', 'value': '${SHORT_SHA} ' + os.environ['FIRST_LINE'], 'inline': False},
-              {'name': 'Quality', 'value': os.environ['QUALITY'], 'inline': True},
-              {'name': 'Integration', 'value': os.environ['INTEGRATION'], 'inline': True},
-              {'name': 'Author', 'value': os.environ['COMMIT_AUTHOR'], 'inline': True},
-            ]}]}).encode()
-          req = urllib.request.Request(os.environ['DISCORD_WEBHOOK'],
-            data=payload, headers={'Content-Type': 'application/json'})
-          urllib.request.urlopen(req, timeout=10)
-          "
+          jq -n \
+            --arg title "$TITLE" --arg url "$RUN_URL" --argjson color "$COLOR" \
+            --arg commit "$SHORT_SHA $FIRST_LINE" \
+            --arg quality "$QUALITY" --arg integration "$INTEGRATION" \
+            --arg author "$COMMIT_AUTHOR" \
+            '{embeds: [{title: $title, url: $url, color: $color, fields: [
+              {name: "Commit", value: $commit, inline: false},
+              {name: "Quality", value: $quality, inline: true},
+              {name: "Integration", value: $integration, inline: true},
+              {name: "Author", value: $author, inline: true}
+            ]}]}' | curl -sf -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"

@@ -16,7 +16,6 @@ jobs:
     if: github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Deploy via SSH
-        id: ssh
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.HETZNER_HOST }}
@@ -37,19 +36,11 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           [ -z "$DISCORD_WEBHOOK" ] && exit 0
-          python3 -c "
-          import json, urllib.request, os
-          msg = os.environ.get('COMMIT_MSG','').split('\n')[0][:80]
-          sha = os.environ['COMMIT_SHA'][:7]
-          payload = json.dumps({'embeds': [{'title': '🚀 Deploy succeeded',
-            'url': os.environ['RUN_URL'], 'color': 3066993,
-            'fields': [
-              {'name': 'Commit', 'value': sha + ' ' + msg, 'inline': False},
-            ]}]}).encode()
-          req = urllib.request.Request(os.environ['DISCORD_WEBHOOK'],
-            data=payload, headers={'Content-Type': 'application/json'})
-          urllib.request.urlopen(req, timeout=10)
-          "
+          FIRST_LINE=$(echo "$COMMIT_MSG" | head -1 | cut -c1-80)
+          jq -n --arg commit "${COMMIT_SHA:0:7} $FIRST_LINE" --arg url "$RUN_URL" \
+            '{embeds: [{title: "🚀 Deploy succeeded", url: $url, color: 3066993,
+              fields: [{name: "Commit", value: $commit, inline: false}]}]}' \
+          | curl -sf -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
 
       - name: Notify Discord failure
         if: failure()
@@ -59,16 +50,8 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           [ -z "$DISCORD_WEBHOOK" ] && exit 0
-          python3 -c "
-          import json, urllib.request, os
-          sha = os.environ['COMMIT_SHA'][:7]
-          payload = json.dumps({'embeds': [{'title': '💥 Deploy FAILED',
-            'url': os.environ['RUN_URL'], 'color': 15158332,
-            'fields': [
-              {'name': 'Commit', 'value': sha, 'inline': False},
-              {'name': 'Action', 'value': 'Check logs ↑', 'inline': False},
-            ]}]}).encode()
-          req = urllib.request.Request(os.environ['DISCORD_WEBHOOK'],
-            data=payload, headers={'Content-Type': 'application/json'})
-          urllib.request.urlopen(req, timeout=10)
-          "
+          jq -n --arg commit "${COMMIT_SHA:0:7}" --arg url "$RUN_URL" \
+            '{embeds: [{title: "💥 Deploy FAILED", url: $url, color: 15158332,
+              fields: [{name: "Commit", value: $commit, inline: false},
+                       {name: "Action", value: "Check logs ↑", inline: false}]}]}' \
+          | curl -sf -H "Content-Type: application/json" -d @- "$DISCORD_WEBHOOK"
