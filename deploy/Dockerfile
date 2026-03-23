@@ -17,5 +17,6 @@ RUN uv sync --frozen --no-dev
 COPY src/ src/
 COPY schema/ schema/
 COPY deploy/crontab /etc/cron.d/etl
+COPY deploy/discord-alert.sh /app/deploy/discord-alert.sh
 
 ENV PYTHONPATH=src

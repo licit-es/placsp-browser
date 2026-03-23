@@ -34,7 +34,8 @@ echo \
   tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-echo "Docker instalado."
+systemctl enable docker
+echo "Docker instalado (auto-start on boot enabled)."
 
 # Add deploy user to docker group (replace 'adf' with your user)
 usermod -aG docker adf

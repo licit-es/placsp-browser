@@ -57,17 +57,38 @@ runcmd:
   # Auto-updates
   - dpkg-reconfigure -plow unattended-upgrades
 
-  # Docker (official script)
+  # Docker (official script, enable on boot)
   - curl -fsSL https://get.docker.com | sh
+  - systemctl enable docker
 
-  # Clone repo & create .env
+  # Clone repo & create .env (project root)
   - su - adf -c "git clone <REPO_URL> ~/placsp-browser"
   - |
-    cat > /home/adf/placsp-browser/deploy/.env << 'ENVEOF'
+    cat > /home/adf/placsp-browser/.env << 'ENVEOF'
     POSTGRES_PASSWORD=<POSTGRES_PASSWORD>
     DOMAIN=<DOMAIN>
+    DISCORD_WEBHOOK_URL=<DISCORD_WEBHOOK_URL>
     ENVEOF
-  - chown adf:adf /home/adf/placsp-browser/deploy/.env
+  - chown adf:adf /home/adf/placsp-browser/.env
+
+  # Watchdog cron (host-level): restart unhealthy containers every 5 min
+  - |
+    cat > /etc/cron.d/placsp-watchdog << 'CRONEOF'
+    */5 * * * * adf /home/adf/placsp-browser/deploy/watchdog.sh
+    CRONEOF
+  - chmod 0644 /etc/cron.d/placsp-watchdog
+
+  # Watchdog log rotation
+  - |
+    cat > /etc/logrotate.d/placsp-watchdog << 'LREOF'
+    /var/log/placsp-watchdog.log {
+        weekly
+        rotate 4
+        compress
+        missingok
+        notifempty
+    }
+    LREOF
 
   # Start services
   - su - adf -c "cd ~/placsp-browser/deploy && docker compose up -d --build"

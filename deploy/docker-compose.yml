@@ -1,6 +1,13 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:16-alpine
+    logging: *default-logging
     environment:
       POSTGRES_DB: licit
       POSTGRES_USER: licit
@@ -32,6 +39,7 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile
     command: uv run uvicorn api.main:app --host 0.0.0.0 --port 8000
+    logging: *default-logging
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/salud')"]
       interval: 5s
@@ -55,11 +63,14 @@ services:
       dockerfile: deploy/Dockerfile
     command: >
       sh -c "chmod 0644 /etc/cron.d/etl
+      && env | grep -E '^(DATABASE_URL|DISCORD_WEBHOOK_URL|PYTHONPATH|ENVIRONMENT|LOG_LEVEL)=' > /etc/environment
       && crontab /etc/cron.d/etl
       && mkdir -p /var/log/etl
       && cron -f"
+    logging: *default-logging
     environment:
       DATABASE_URL: postgresql://licit:${POSTGRES_PASSWORD}@postgres:5432/licit
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
       ENVIRONMENT: production
       LOG_LEVEL: INFO
     depends_on:
@@ -71,6 +82,7 @@ services:
 
   caddy:
     build: ./caddy
+    logging: *default-logging
     ports:
       - "80:80"
       - "443:443"
