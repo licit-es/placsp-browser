@@ -83,3 +83,47 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/licit
           ENVIRONMENT: ci
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [quality, integration]
+    if: always()
+    steps:
+      - name: Notify Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_CI_WEBHOOK_URL }}
+          QUALITY: ${{ needs.quality.result }}
+          INTEGRATION: ${{ needs.integration.result }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_AUTHOR: ${{ github.actor }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          [ -z "$DISCORD_WEBHOOK" ] && exit 0
+
+          if [ "$QUALITY" = "success" ] && [ "$INTEGRATION" = "success" ]; then
+            COLOR=3066993
+            TITLE="✅ Tests passed"
+          else
+            COLOR=15158332
+            TITLE="❌ Tests failed"
+          fi
+
+          SHORT_SHA="${COMMIT_SHA:0:7}"
+          # Sanitize commit message for JSON (first line only, escape quotes)
+          FIRST_LINE=$(echo "$COMMIT_MSG" | head -1 | sed 's/"/\\"/g' | cut -c1-80)
+
+          python3 -c "
+          import json, urllib.request, os
+          payload = json.dumps({'embeds': [{'title': os.environ['TITLE'],
+            'url': os.environ['RUN_URL'], 'color': int(os.environ['COLOR']),
+            'fields': [
+              {'name': 'Commit', 'value': '${SHORT_SHA} ' + os.environ['FIRST_LINE'], 'inline': False},
+              {'name': 'Quality', 'value': os.environ['QUALITY'], 'inline': True},
+              {'name': 'Integration', 'value': os.environ['INTEGRATION'], 'inline': True},
+              {'name': 'Author', 'value': os.environ['COMMIT_AUTHOR'], 'inline': True},
+            ]}]}).encode()
+          req = urllib.request.Request(os.environ['DISCORD_WEBHOOK'],
+            data=payload, headers={'Content-Type': 'application/json'})
+          urllib.request.urlopen(req, timeout=10)
+          "
