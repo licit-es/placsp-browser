@@ -83,6 +83,8 @@ class FeedReaderService:
         skipped_stale = 0
         failed = 0
         pages = 0
+        consecutive_stale_pages = 0
+        max_stale_pages = 3
 
         while url:
             logger.info("Page fetch url=%s", url)
@@ -138,9 +140,22 @@ class FeedReaderService:
             )
             pages += 1
 
+            if page_ok > 0:
+                consecutive_stale_pages = 0
+            else:
+                consecutive_stale_pages += 1
+
             if not page.next_link:
                 logger.info("Pagination stop reason=no_next_link")
-            url = page.next_link
+                url = None
+            elif consecutive_stale_pages >= max_stale_pages:
+                logger.info(
+                    "Pagination stop reason=all_stale consecutive_pages=%d",
+                    consecutive_stale_pages,
+                )
+                url = None
+            else:
+                url = page.next_link
 
         logger.info(
             "Sync end feed_type=%s year=%d processed=%d failed=%d pages=%d",
