@@ -10,7 +10,7 @@ MODULE="$2"
 LOG="/var/log/etl/${LABEL}.log"
 START=$(date +%s)
 
-cd /app && PYTHONPATH=src uv run python -m "$MODULE" >> "$LOG" 2>&1
+cd /app && PYTHONPATH=src /usr/local/bin/uv run python -m "$MODULE" >> "$LOG" 2>&1
 EXIT=$?
 
 DURATION=$(( $(date +%s) - START ))
