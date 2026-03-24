@@ -1,9 +1,9 @@
-# ETL schedules — notify Discord on failure via DISCORD_WEBHOOK_URL env var
+# ETL schedules
 # Feed reader: every hour
-0 * * * * cd /app && PYTHONPATH=src uv run python -m etl.handlers.feed_reader >> /var/log/etl/feed_reader.log 2>&1 || /app/deploy/discord-alert.sh "feed_reader"
+0 * * * * /app/deploy/etl-run.sh feed_reader etl.handlers.feed_reader
 
 # Catalog updater: daily at 03:00
-0 3 * * * cd /app && PYTHONPATH=src uv run python -m etl.handlers.catalog_updater >> /var/log/etl/catalog_updater.log 2>&1 || /app/deploy/discord-alert.sh "catalog_updater"
+0 3 * * * /app/deploy/etl-run.sh catalog_updater etl.handlers.catalog_updater
 
 # Log rotation: daily at 04:00 — compress logs over 10 MB
 0 4 * * * find /var/log/etl -name '*.log' -size +10M -exec sh -c 'mv "$1" "$1.$(date +\%Y\%m\%d).old" && gzip -f "$1.$(date +\%Y\%m\%d).old"' _ {} \;
