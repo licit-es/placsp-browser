@@ -26,13 +26,14 @@ EOF
 
 echo "==> Rebuilding etl-cron (persistent log volume)"
 cd "$PROJECT_DIR"
-docker compose -f "$DEPLOY_DIR/docker-compose.yml" up -d --build etl-cron
+COMPOSE="docker compose --project-directory $PROJECT_DIR -f $DEPLOY_DIR/docker-compose.yml"
+
+$COMPOSE up -d --build etl-cron
 
 echo "==> Running ETL feed_reader now (catch up today)"
-docker compose -f "$DEPLOY_DIR/docker-compose.yml" exec etl-cron \
-  sh -c "cd /app && PYTHONPATH=src uv run python -m etl.handlers.feed_reader"
+$COMPOSE exec etl-cron /app/deploy/etl-run.sh feed_reader etl.handlers.feed_reader
 
 echo "==> Done. Verify:"
 echo "  - Watchdog: cat /etc/cron.d/placsp-watchdog"
 echo "  - Docker on boot: systemctl is-enabled docker"
-echo "  - ETL logs: docker compose -f $DEPLOY_DIR/docker-compose.yml exec etl-cron ls -la /var/log/etl/"
+echo "  - ETL logs: $COMPOSE exec etl-cron ls -la /var/log/etl/"
