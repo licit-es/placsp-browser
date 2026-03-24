@@ -6,7 +6,7 @@ set -euo pipefail
 
 COMPOSE_FILE="$(cd "$(dirname "$0")" && pwd)/docker-compose.yml"
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-COMPOSE="docker compose --project-directory $PROJECT_DIR -f $COMPOSE_FILE"
+COMPOSE="docker compose --env-file $PROJECT_DIR/.env -f $COMPOSE_FILE"
 
 cd "$PROJECT_DIR"
 

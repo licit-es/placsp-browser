@@ -7,7 +7,7 @@ set -euo pipefail
 
 COMPOSE_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$COMPOSE_DIR/.." && pwd)"
-COMPOSE="docker compose --project-directory $PROJECT_DIR -f $COMPOSE_DIR/docker-compose.yml"
+COMPOSE="docker compose --env-file $PROJECT_DIR/.env -f $COMPOSE_DIR/docker-compose.yml"
 LOG="/var/log/placsp-watchdog.log"
 STATE_DIR="/tmp/placsp-watchdog"
 mkdir -p "$STATE_DIR"

@@ -26,7 +26,7 @@ EOF
 
 echo "==> Rebuilding etl-cron (persistent log volume)"
 cd "$PROJECT_DIR"
-COMPOSE="docker compose --project-directory $PROJECT_DIR -f $DEPLOY_DIR/docker-compose.yml"
+COMPOSE="docker compose --env-file $PROJECT_DIR/.env -f $DEPLOY_DIR/docker-compose.yml"
 
 $COMPOSE up -d --build etl-cron
 
