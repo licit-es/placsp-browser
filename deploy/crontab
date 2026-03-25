@@ -1,6 +1,6 @@
 # ETL schedules
-# Feed reader: daily at midnight
-0 0 * * * /app/deploy/etl-run.sh feed_reader etl.handlers.feed_reader
+# Feed reader: every hour
+0 * * * * /app/deploy/etl-run.sh feed_reader etl.handlers.feed_reader
 
 # Catalog updater: daily at 03:00
 0 3 * * * /app/deploy/etl-run.sh catalog_updater etl.handlers.catalog_updater

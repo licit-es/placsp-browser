@@ -26,10 +26,13 @@ STALE=$(echo "$RESULT_LINE"     | grep -o "'skipped_stale': [0-9]*" | grep -o '[
 FAILED=$(echo "$RESULT_LINE"    | grep -o "'failed': [0-9]*" | grep -o '[0-9]*' || echo "?")
 PAGES=$(echo "$RESULT_LINE"     | grep -o "'pages': [0-9]*" | grep -o '[0-9]*' || echo "?")
 
-if [ "$EXIT" -eq 0 ]; then
+# Only notify on failures or when there are new insertions
+if [ "$EXIT" -ne 0 ]; then
+  ICON="❌"; TITLE="ETL ${LABEL} FALLIDO"; COLOR=15158332
+elif [ "$PROCESSED" != "0" ] && [ "$PROCESSED" != "?" ]; then
   ICON="✅"; TITLE="ETL ${LABEL} completado"; COLOR=3066993
 else
-  ICON="❌"; TITLE="ETL ${LABEL} FALLIDO"; COLOR=15158332
+  exit 0
 fi
 
 jq -n \
