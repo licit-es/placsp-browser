@@ -26,6 +26,7 @@ from api.schemas.organo import (
 )
 from api.schemas.resumen import (
     DISPLAY_COLS,
+    LICITACION_VIEW,
     CambioEstado,
     DocumentoResumen,
     LicitacionResumen,
@@ -39,6 +40,7 @@ from api.schemas.similares import (
 
 __all__ = [
     "DISPLAY_COLS",
+    "LICITACION_VIEW",
     "AdjudicatarioInfo",
     "CambioEstado",
     "Criterio",

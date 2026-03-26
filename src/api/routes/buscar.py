@@ -12,6 +12,7 @@ from api.catalogs import to_codes
 from api.deps import get_conn
 from api.schemas import (
     DISPLAY_COLS,
+    LICITACION_VIEW,
     DocumentoResumen,
     FiltrosBusqueda,
     LicitacionResumen,
@@ -251,14 +252,14 @@ async def buscar(
         rank_expr = "ts_rank(v.search_vector, plainto_tsquery('spanish', $1)) AS rank"
 
     total = await conn.fetchval(
-        f"SELECT count(*) FROM v_licitacion v {where}",
+        f"SELECT count(*) FROM {LICITACION_VIEW} v {where}",
         *params,
     )
 
     fetch_limit = body.limit + 1
     data_sql = f"""
         SELECT {DISPLAY_COLS}, {rank_expr}
-        FROM v_licitacion v
+        FROM {LICITACION_VIEW} v
         {where}
         ORDER BY {order_sql}
         LIMIT ${idx}

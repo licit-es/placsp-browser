@@ -34,6 +34,18 @@ CREATE INDEX IF NOT EXISTS idx_wp_name_trgm
 CREATE INDEX IF NOT EXISTS idx_sc_cfs_updated
   ON status_change (contract_folder_status_id, updated);
 
+-- winning_party.identifier: empresa subquery counts, empresa_upsert trigger
+CREATE INDEX IF NOT EXISTS idx_wp_identifier
+  ON winning_party (identifier);
+
+-- tender_result: v_licitacion LATERAL picks latest by award_date DESC
+CREATE INDEX IF NOT EXISTS idx_tr_cfs_award
+  ON tender_result (contract_folder_status_id, award_date DESC NULLS LAST);
+
+-- cpv_classification: prefix LIKE search in /buscar CPV filter
+CREATE INDEX IF NOT EXISTS idx_cpv_code_prefix
+  ON cpv_classification (item_classification_code text_pattern_ops);
+
 -- =================================================================
 -- EMPRESA (canonical companies, derived from winning_party)
 -- =================================================================
@@ -322,3 +334,37 @@ ORDER BY identifier,
   CASE WHEN name ~* '^U\.?T\.?E\.?\s' THEN 1 ELSE 0 END,
   length(name) DESC NULLS LAST
 ON CONFLICT (nif) DO NOTHING;
+
+-- =================================================================
+-- MATERIALIZED VIEW: mv_licitacion
+-- Pre-computed snapshot of v_licitacion for fast API reads.
+-- Refreshed after each ETL batch via refresh_mv_licitacion().
+-- =================================================================
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_licitacion AS
+SELECT * FROM v_licitacion;
+
+-- Unique index required for REFRESH ... CONCURRENTLY (no lock on reads)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_licitacion_id
+  ON mv_licitacion (id);
+
+-- Reproduce the search/filter indexes on the matview
+CREATE INDEX IF NOT EXISTS idx_mv_licitacion_search
+  ON mv_licitacion USING gin(search_vector);
+CREATE INDEX IF NOT EXISTS idx_mv_licitacion_updated
+  ON mv_licitacion (fecha_actualizacion DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_mv_licitacion_status
+  ON mv_licitacion (status_code);
+CREATE INDEX IF NOT EXISTS idx_mv_licitacion_type_budget
+  ON mv_licitacion (type_code, presupuesto_sin_iva);
+CREATE INDEX IF NOT EXISTS idx_mv_licitacion_organo
+  ON mv_licitacion (organo_id);
+CREATE INDEX IF NOT EXISTS idx_mv_licitacion_adjudicatario
+  ON mv_licitacion (adjudicatario_nif);
+
+-- Function: refresh the matview. Called by ETL after batch completes.
+-- CONCURRENTLY allows reads during refresh (requires the unique index).
+CREATE OR REPLACE FUNCTION refresh_mv_licitacion() RETURNS void AS $$
+BEGIN
+  REFRESH MATERIALIZED VIEW CONCURRENTLY mv_licitacion;
+END $$ LANGUAGE plpgsql;

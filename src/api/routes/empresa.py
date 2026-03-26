@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from api.deps import get_conn
 from api.schemas import (
     DISPLAY_COLS,
+    LICITACION_VIEW,
     EmpresaDetalle,
     EmpresaResumen,
     EmpresaStats,
@@ -127,7 +128,7 @@ async def get_empresa(
     rows = await conn.fetch(
         f"""
         SELECT {DISPLAY_COLS}
-        FROM v_licitacion v
+        FROM {LICITACION_VIEW} v
         WHERE v.adjudicatario_nif = $1 {cursor_cond}
         ORDER BY v.fecha_actualizacion DESC, v.id DESC
         LIMIT $2

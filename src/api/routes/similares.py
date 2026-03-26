@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from api.deps import get_conn
 from api.inteligencia.estadisticas import confidence
 from api.inteligencia.similares import IntelligenceResult, compute_intelligence
-from api.schemas import DISPLAY_COLS
+from api.schemas import DISPLAY_COLS, LICITACION_VIEW
 from api.schemas.similares import (
     AdjudicatarioFrecuente,
     EstadisticasCompetencia,
@@ -57,7 +57,7 @@ async def get_similares(
     rows = await conn.fetch(
         f"""
         SELECT {DISPLAY_COLS}
-        FROM v_licitacion v
+        FROM {LICITACION_VIEW} v
         WHERE v.id = ANY($1) {where_extra}
         """,
         *params,

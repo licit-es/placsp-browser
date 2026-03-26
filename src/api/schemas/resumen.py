@@ -25,8 +25,12 @@ class DocumentoResumen(BaseModel):
     url: str | None = Field(description="URL directa al documento.")
 
 
-# SQL columns shared by every route that queries v_licitacion for display.
-# Import and interpolate as f"SELECT {DISPLAY_COLS} FROM v_licitacion v".
+# Materialized view used by all read-only API routes.
+# Switch to "v_licitacion" to bypass the matview if needed.
+LICITACION_VIEW = "mv_licitacion"
+
+# SQL columns shared by every route that queries the licitacion view.
+# Import and interpolate as f"SELECT {DISPLAY_COLS} FROM {LICITACION_VIEW} v".
 DISPLAY_COLS = (
     "v.id, v.expediente, v.titulo, v.organo,"
     " v.tipo_contrato, v.estado, v.presupuesto_sin_iva,"

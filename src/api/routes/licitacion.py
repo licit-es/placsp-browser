@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from api.deps import get_conn
 from api.schemas import (
+    LICITACION_VIEW,
     AdjudicatarioInfo,
     Criterio,
     Documento,
@@ -33,7 +34,9 @@ async def get_licitacion(
     conn: asyncpg.Connection = Depends(get_conn),
 ) -> LicitacionDetalle:
     """Return full tender detail with nested criterios, solvencia, lotes, docs."""
-    row = await conn.fetchrow("SELECT * FROM v_licitacion WHERE id = $1", licitacion_id)
+    row = await conn.fetchrow(
+        f"SELECT * FROM {LICITACION_VIEW} WHERE id = $1", licitacion_id
+    )
     if not row:
         raise HTTPException(status_code=404, detail="Licitacion no encontrada")
 

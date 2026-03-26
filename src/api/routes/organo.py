@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from api.deps import get_conn
 from api.schemas import (
     DISPLAY_COLS,
+    LICITACION_VIEW,
     LicitacionResumen,
     OrganoDetalle,
     OrganoResumen,
@@ -72,17 +73,16 @@ async def get_organo(
     cursor: str | None = Query(None, description="Cursor de paginacion."),
 ) -> OrganoDetalle:
     """Contracting body profile with stats and paginated tenders."""
-    # Use v_licitacion for a single row to get resolved organo fields
     org = await conn.fetchrow(
         "SELECT organo_id, organo, organo_nif, organo_tipo"
-        " FROM v_licitacion WHERE organo_id = $1 LIMIT 1",
+        f" FROM {LICITACION_VIEW} WHERE organo_id = $1 LIMIT 1",
         organo_id,
     )
     if not org:
         raise HTTPException(status_code=404, detail="Organo no encontrado")
 
     stats_row = await conn.fetchrow(
-        """
+        f"""
         SELECT
           count(*) AS total,
           avg(presupuesto_sin_iva)
@@ -92,16 +92,16 @@ async def get_organo(
           ))) FILTER (WHERE fecha_adjudicacion IS NOT NULL
                       AND fecha_limite IS NOT NULL
                       AND fecha_adjudicacion > fecha_limite) AS plazo_medio
-        FROM v_licitacion
+        FROM {LICITACION_VIEW}
         WHERE organo_id = $1
         """,
         organo_id,
     )
 
     cpv_rows = await conn.fetch(
-        """
+        f"""
         SELECT vc.codigo, count(*) AS n
-        FROM v_licitacion v
+        FROM {LICITACION_VIEW} v
         JOIN v_cpv vc ON vc.licitacion_id = v.id AND vc.lote_id IS NULL
         WHERE v.organo_id = $1
         GROUP BY vc.codigo ORDER BY n DESC LIMIT 5
@@ -120,7 +120,7 @@ async def get_organo(
     rows = await conn.fetch(
         f"""
         SELECT {DISPLAY_COLS}
-        FROM v_licitacion v
+        FROM {LICITACION_VIEW} v
         WHERE v.organo_id = $1 {cursor_cond}
         ORDER BY v.fecha_actualizacion DESC, v.id DESC
         LIMIT $2
