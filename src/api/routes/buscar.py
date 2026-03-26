@@ -84,7 +84,11 @@ def _apply_filters(
         )
         params.append(f"%{f.adjudicatario}%")
         idx += 1
-    if f.organo:
+    if f.organo_id:
+        conditions.append(f"v.organo_id = ${idx}")
+        params.append(f.organo_id)
+        idx += 1
+    elif f.organo:
         conditions.append(f"v.organo ILIKE ${idx}")
         params.append(f"%{f.organo}%")
         idx += 1

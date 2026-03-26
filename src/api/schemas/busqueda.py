@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -98,6 +99,13 @@ class FiltrosBusqueda(BaseModel):
         None,
         description="Nombre del organo de contratacion. Busqueda parcial (ILIKE).",
         json_schema_extra={"examples": ["Ministerio"]},
+    )
+    organo_id: UUID | None = Field(
+        None,
+        description=(
+            "Identificador UUID del organo de contratacion. "
+            "Filtro exacto; tiene prioridad sobre 'organo' textual."
+        ),
     )
     financiacion_ue: bool | None = Field(
         None,
