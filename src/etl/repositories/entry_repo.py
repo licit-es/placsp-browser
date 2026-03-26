@@ -325,7 +325,9 @@ class PgEntryRepository:
 
         # Merge: both lookups hit different rows -> absorb dir3-row into pid-row
         existing = None
+        is_merge = False
         if pid_row and dir3_row and pid_row["id"] != dir3_row["id"]:
+            is_merge = True
             # guard_updated trigger rejects FK-only updates (no timestamp change),
             # so temporarily disable it for the merge reassignment.
             await conn.execute(
@@ -366,10 +368,16 @@ class PgEntryRepository:
         )
 
         if existing:
+            # Merges: incoming entry is authoritative (has both identifiers).
+            # Non-merge: prefer the longer (more complete) name variant.
+            name_expr = (
+                "$2"
+                if is_merge
+                else "CASE WHEN length($2) > length(name) THEN $2 ELSE name END"
+            )
             await conn.execute(
-                "UPDATE contracting_party SET"
-                " name = CASE WHEN length($2) > length(name)"
-                "   THEN $2 ELSE name END,"
+                f"UPDATE contracting_party SET"
+                f" name = {name_expr},"
                 " dir3=$3, nif=$4,"
                 " platform_id=$5, website_uri=$6,"
                 " contracting_party_type_code=$7,"
