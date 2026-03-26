@@ -19,16 +19,16 @@ BEGIN
 END $$ LANGUAGE plpgsql;
 
 -- pg_cron: refresh daily at 05:00 UTC (after ETL hourly + catalog at 03:00).
-CREATE EXTENSION IF NOT EXISTS pg_cron;
-
+-- Skipped gracefully when pg_cron is not installed (e.g. CI).
 DO $$
 BEGIN
+  CREATE EXTENSION IF NOT EXISTS pg_cron;
   PERFORM cron.unschedule('refresh-mv-landing-stats');
-EXCEPTION WHEN OTHERS THEN NULL;
+  PERFORM cron.schedule(
+    'refresh-mv-landing-stats',
+    '0 5 * * *',
+    'SELECT refresh_mv_landing_stats()'
+  );
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'pg_cron not available, skipping schedule: %', SQLERRM;
 END $$;
-
-SELECT cron.schedule(
-  'refresh-mv-landing-stats',
-  '0 5 * * *',
-  $$SELECT refresh_mv_landing_stats()$$
-);
