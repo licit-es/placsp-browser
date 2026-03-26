@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from uuid import UUID
 
 import asyncpg
@@ -65,33 +66,57 @@ async def get_licitacion(
         ),
     )
 
-    # Lotes with per-lot criterios, solvencia, CPVs
+    # Lotes with per-lot criterios, solvencia, CPVs (batch to avoid N+1)
+    lot_ids = [lr["id"] for lr in lotes_rows]
+    if lot_ids:
+        all_lot_criterios, all_lot_solvencia, all_lot_cpvs = (
+            await conn.fetch(
+                "SELECT lote_id, tipo, subtipo, descripcion, peso, nota"
+                " FROM v_criterio WHERE lote_id = ANY($1)"
+                " ORDER BY peso DESC NULLS LAST",
+                lot_ids,
+            ),
+            await conn.fetch(
+                "SELECT lote_id, origen, tipo_evaluacion, descripcion,"
+                "  umbral, situacion_personal, anios_experiencia,"
+                "  num_empleados"
+                " FROM v_solvencia WHERE lote_id = ANY($1)",
+                lot_ids,
+            ),
+            await conn.fetch(
+                "SELECT lote_id, codigo FROM v_cpv"
+                " WHERE lote_id = ANY($1)",
+                lot_ids,
+            ),
+        )
+    else:
+        all_lot_criterios = all_lot_solvencia = all_lot_cpvs = []
+
+    # Group by lot_id
+    crit_by_lot: dict[UUID, list[asyncpg.Record]] = defaultdict(list)
+    solv_by_lot: dict[UUID, list[asyncpg.Record]] = defaultdict(list)
+    cpv_by_lot: dict[UUID, list[asyncpg.Record]] = defaultdict(list)
+    for r in all_lot_criterios:
+        crit_by_lot[r["lote_id"]].append(r)
+    for r in all_lot_solvencia:
+        solv_by_lot[r["lote_id"]].append(r)
+    for r in all_lot_cpvs:
+        cpv_by_lot[r["lote_id"]].append(r)
+
     lotes: list[LoteResumen] = []
     for lr in lotes_rows:
         lot_id = lr["id"]
-        lot_criterios, lot_solvencia, lot_cpvs = (
-            await conn.fetch(
-                "SELECT tipo, subtipo, descripcion, peso, nota"
-                " FROM v_criterio WHERE lote_id = $1"
-                " ORDER BY peso DESC NULLS LAST",
-                lot_id,
-            ),
-            await conn.fetch(
-                "SELECT origen, tipo_evaluacion, descripcion,"
-                "  umbral, situacion_personal, anios_experiencia, num_empleados"
-                " FROM v_solvencia WHERE lote_id = $1",
-                lot_id,
-            ),
-            await conn.fetch("SELECT codigo FROM v_cpv WHERE lote_id = $1", lot_id),
-        )
         lotes.append(
             LoteResumen(
                 numero=lr["numero"],
                 titulo=lr["titulo"],
                 presupuesto_sin_iva=lr["presupuesto_sin_iva"],
-                cpv=[c["codigo"] for c in lot_cpvs],
-                criterios=[Criterio(**dict(r)) for r in lot_criterios],
-                solvencia=[RequisitoSolvencia(**dict(r)) for r in lot_solvencia],
+                cpv=[c["codigo"] for c in cpv_by_lot[lot_id]],
+                criterios=[Criterio(**dict(r)) for r in crit_by_lot[lot_id]],
+                solvencia=[
+                    RequisitoSolvencia(**dict(r))
+                    for r in solv_by_lot[lot_id]
+                ],
             )
         )
 
