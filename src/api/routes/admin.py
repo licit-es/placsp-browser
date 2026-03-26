@@ -27,7 +27,7 @@ router = APIRouter(prefix="/admin", tags=["Administracion"])
 )
 async def listar_usuarios(
     _admin: asyncpg.Record = Depends(require_admin),
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
 ) -> list[UsuarioResumen]:
     """List all registered users."""
     rows = await conn.fetch(
@@ -46,7 +46,7 @@ async def patch_usuario(
     usuario_id: UUID,
     body: PatchUsuario,
     _admin: asyncpg.Record = Depends(require_admin),
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
 ) -> UsuarioResumen:
     """Activate/deactivate user or change role."""
     sets: list[str] = []
@@ -85,7 +85,7 @@ async def patch_usuario(
 )
 async def auditoria(
     _admin: asyncpg.Record = Depends(require_admin),
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
     usuario_id: UUID | None = Query(None),
     path: str | None = Query(None),
     desde: date | None = Query(None),
@@ -155,7 +155,7 @@ async def auditoria(
 async def revocar_claves_usuario(
     usuario_id: UUID,
     _admin: asyncpg.Record = Depends(require_admin),
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
 ) -> None:
     """Revoke all API keys for a user (admin action)."""
     result = await conn.execute(

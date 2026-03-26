@@ -67,7 +67,7 @@ def _hash_key(plaintext: str) -> str:
 async def get_current_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
 ) -> asyncpg.Record:
     """Validate Bearer token and return the user record.
 
