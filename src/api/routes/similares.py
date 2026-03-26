@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from api.deps import get_conn
 from api.inteligencia.estadisticas import confidence
 from api.inteligencia.similares import IntelligenceResult, compute_intelligence
+from api.schemas import DISPLAY_COLS
 from api.schemas.similares import (
     AdjudicatarioFrecuente,
     EstadisticasCompetencia,
@@ -20,18 +21,6 @@ from api.schemas.similares import (
 )
 
 router = APIRouter(tags=["Similares"])
-
-# Display fields from v_licitacion (shared with buscar/organo).
-_DISPLAY_COLS = """
-    v.id, v.expediente, v.titulo, v.organo,
-    v.tipo_contrato, v.estado, v.presupuesto_sin_iva,
-    v.importe_adjudicacion, v.fecha_publicacion,
-    v.fecha_actualizacion, v.fecha_adjudicacion,
-    v.cpv_principal, v.num_licitadores, v.adjudicatario,
-    v.lugar_subentidad AS lugar,
-    v.tiene_documentos, v.num_lotes,
-    v.historial_estados
-"""
 
 
 @router.get(
@@ -67,7 +56,7 @@ async def get_similares(
 
     rows = await conn.fetch(
         f"""
-        SELECT {_DISPLAY_COLS}
+        SELECT {DISPLAY_COLS}
         FROM v_licitacion v
         WHERE v.id = ANY($1) {where_extra}
         """,
@@ -75,7 +64,10 @@ async def get_similares(
     )
 
     resultados = sorted(
-        [_row_to_similar(r, score_map) for r in rows],
+        [
+            LicitacionSimilar.from_row(r, similitud=score_map.get(r["id"], 0))
+            for r in rows
+        ],
         key=lambda x: (-x.similitud, x.fecha_actualizacion),
         reverse=False,
     )
@@ -126,33 +118,6 @@ async def get_similares(
 def _confidence_label(intel: IntelligenceResult) -> str:
     """Map pricing sample size to a human label."""
     return confidence(intel.pricing)
-
-
-def _row_to_similar(
-    r: asyncpg.Record,
-    score_map: dict[UUID, int],
-) -> LicitacionSimilar:
-    return LicitacionSimilar(
-        id=r["id"],
-        expediente=r["expediente"],
-        titulo=r["titulo"],
-        organo=r["organo"],
-        tipo_contrato=r["tipo_contrato"],
-        estado=r["estado"],
-        presupuesto_sin_iva=r["presupuesto_sin_iva"],
-        importe_adjudicacion=r["importe_adjudicacion"],
-        fecha_publicacion=r["fecha_publicacion"],
-        fecha_actualizacion=r["fecha_actualizacion"],
-        fecha_adjudicacion=r["fecha_adjudicacion"],
-        cpv_principal=r["cpv_principal"],
-        num_licitadores=r["num_licitadores"],
-        adjudicatario=r["adjudicatario"],
-        lugar=r["lugar"],
-        tiene_documentos=r["tiene_documentos"],
-        num_lotes=r["num_lotes"],
-        historial_estados=r["historial_estados"] or [],
-        similitud=score_map.get(r["id"], 0),
-    )
 
 
 def _empty_response(budget_factor: int) -> RespuestaSimilares:

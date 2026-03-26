@@ -25,6 +25,20 @@ class DocumentoResumen(BaseModel):
     url: str | None = Field(description="URL directa al documento.")
 
 
+# SQL columns shared by every route that queries v_licitacion for display.
+# Import and interpolate as f"SELECT {DISPLAY_COLS} FROM v_licitacion v".
+DISPLAY_COLS = (
+    "v.id, v.expediente, v.titulo, v.organo,"
+    " v.tipo_contrato, v.estado, v.presupuesto_sin_iva,"
+    " v.importe_adjudicacion, v.fecha_publicacion,"
+    " v.fecha_actualizacion, v.fecha_adjudicacion,"
+    " v.cpv_principal, v.num_licitadores, v.adjudicatario,"
+    " v.lugar_subentidad AS lugar,"
+    " v.tiene_documentos, v.num_lotes,"
+    " v.historial_estados"
+)
+
+
 class LicitacionResumen(BaseModel):
     """Resumen de licitacion para resultados de busqueda.
 
@@ -97,6 +111,35 @@ class LicitacionResumen(BaseModel):
     relevancia: float | None = Field(
         None, description="Puntuacion de relevancia FTS (solo con texto libre)."
     )
+
+    @classmethod
+    def from_row(cls, r: object, **extras: object) -> LicitacionResumen:
+        """Build from an asyncpg.Record (or any mapping).
+
+        Extra keyword args are forwarded to the constructor, so callers
+        can pass ``documentos=...``, ``relevancia=...``, etc.
+        """
+        return cls(
+            id=r["id"],  # type: ignore[index]
+            expediente=r["expediente"],  # type: ignore[index]
+            titulo=r["titulo"],  # type: ignore[index]
+            organo=r["organo"],  # type: ignore[index]
+            tipo_contrato=r["tipo_contrato"],  # type: ignore[index]
+            estado=r["estado"],  # type: ignore[index]
+            presupuesto_sin_iva=r["presupuesto_sin_iva"],  # type: ignore[index]
+            importe_adjudicacion=r["importe_adjudicacion"],  # type: ignore[index]
+            fecha_publicacion=r["fecha_publicacion"],  # type: ignore[index]
+            fecha_actualizacion=r["fecha_actualizacion"],  # type: ignore[index]
+            fecha_adjudicacion=r["fecha_adjudicacion"],  # type: ignore[index]
+            cpv_principal=r["cpv_principal"],  # type: ignore[index]
+            num_licitadores=r["num_licitadores"],  # type: ignore[index]
+            adjudicatario=r["adjudicatario"],  # type: ignore[index]
+            lugar=r["lugar"],  # type: ignore[index]
+            tiene_documentos=r["tiene_documentos"],  # type: ignore[index]
+            num_lotes=r["num_lotes"],  # type: ignore[index]
+            historial_estados=r["historial_estados"] or [],  # type: ignore[index]
+            **extras,  # type: ignore[arg-type]
+        )
 
 
 class RespuestaBusqueda(BaseModel):

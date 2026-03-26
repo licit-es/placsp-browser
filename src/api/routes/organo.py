@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.deps import get_conn
 from api.schemas import (
+    DISPLAY_COLS,
     LicitacionResumen,
     OrganoDetalle,
     OrganoResumen,
@@ -118,14 +119,7 @@ async def get_organo(
 
     rows = await conn.fetch(
         f"""
-        SELECT v.id, v.expediente, v.titulo, v.organo,
-               v.tipo_contrato, v.estado, v.presupuesto_sin_iva,
-               v.importe_adjudicacion, v.fecha_publicacion,
-               v.fecha_actualizacion, v.fecha_adjudicacion,
-               v.cpv_principal, v.num_licitadores, v.adjudicatario,
-               v.lugar_subentidad AS lugar,
-               v.tiene_documentos, v.num_lotes,
-               v.historial_estados
+        SELECT {DISPLAY_COLS}
         FROM v_licitacion v
         WHERE v.organo_id = $1 {cursor_cond}
         ORDER BY v.fecha_actualizacion DESC, v.id DESC
@@ -155,28 +149,6 @@ async def get_organo(
             cpv_frecuentes=[r["codigo"] for r in cpv_rows],
             plazo_medio_adjudicacion_dias=(round(plazo) if plazo is not None else None),
         ),
-        licitaciones=[
-            LicitacionResumen(
-                id=r["id"],
-                expediente=r["expediente"],
-                titulo=r["titulo"],
-                organo=r["organo"],
-                tipo_contrato=r["tipo_contrato"],
-                estado=r["estado"],
-                presupuesto_sin_iva=r["presupuesto_sin_iva"],
-                importe_adjudicacion=r["importe_adjudicacion"],
-                fecha_publicacion=r["fecha_publicacion"],
-                fecha_actualizacion=r["fecha_actualizacion"],
-                fecha_adjudicacion=r["fecha_adjudicacion"],
-                cpv_principal=r["cpv_principal"],
-                num_licitadores=r["num_licitadores"],
-                adjudicatario=r["adjudicatario"],
-                lugar=r["lugar"],
-                tiene_documentos=r["tiene_documentos"],
-                num_lotes=r["num_lotes"],
-                historial_estados=r["historial_estados"] or [],
-            )
-            for r in rows
-        ],
+        licitaciones=[LicitacionResumen.from_row(r) for r in rows],
         cursor_siguiente=cursor_siguiente,
     )

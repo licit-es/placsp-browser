@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends
 from api.catalogs import to_codes
 from api.deps import get_conn
 from api.schemas import (
+    DISPLAY_COLS,
     DocumentoResumen,
     FiltrosBusqueda,
     LicitacionResumen,
@@ -207,25 +208,8 @@ def _row_to_resumen(
     r: asyncpg.Record,
     docs: list[DocumentoResumen] | None = None,
 ) -> LicitacionResumen:
-    return LicitacionResumen(
-        id=r["id"],
-        expediente=r["expediente"],
-        titulo=r["titulo"],
-        organo=r["organo"],
-        tipo_contrato=r["tipo_contrato"],
-        estado=r["estado"],
-        presupuesto_sin_iva=r["presupuesto_sin_iva"],
-        importe_adjudicacion=r["importe_adjudicacion"],
-        fecha_publicacion=r["fecha_publicacion"],
-        fecha_actualizacion=r["fecha_actualizacion"],
-        fecha_adjudicacion=r["fecha_adjudicacion"],
-        cpv_principal=r["cpv_principal"],
-        num_licitadores=r["num_licitadores"],
-        adjudicatario=r["adjudicatario"],
-        lugar=r["lugar"],
-        tiene_documentos=r["tiene_documentos"],
-        num_lotes=r["num_lotes"],
-        historial_estados=r["historial_estados"] or [],
+    return LicitacionResumen.from_row(
+        r,
         documentos=docs,
         relevancia=round(float(r["rank"]), 4) if r["rank"] else None,
     )
@@ -273,15 +257,7 @@ async def buscar(
 
     fetch_limit = body.limit + 1
     data_sql = f"""
-        SELECT v.id, v.expediente, v.titulo, v.organo,
-               v.tipo_contrato, v.estado, v.presupuesto_sin_iva,
-               v.importe_adjudicacion, v.fecha_publicacion,
-               v.fecha_actualizacion, v.fecha_adjudicacion,
-               v.cpv_principal, v.num_licitadores, v.adjudicatario,
-               v.lugar_subentidad AS lugar,
-               v.tiene_documentos, v.num_lotes,
-               v.historial_estados,
-               {rank_expr}
+        SELECT {DISPLAY_COLS}, {rank_expr}
         FROM v_licitacion v
         {where}
         ORDER BY {order_sql}
