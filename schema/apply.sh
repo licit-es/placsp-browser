@@ -31,6 +31,7 @@ cat \
   "$SCHEMA_DIR"/10_catalog.sql \
   "$SCHEMA_DIR"/11_api.sql \
   "$SCHEMA_DIR"/12_auth.sql \
+  "$SCHEMA_DIR"/13_web_stats.sql \
 | psql "$DB_URL" --single-transaction --set ON_ERROR_STOP=on
 
 echo "Schema applied."

@@ -16,7 +16,18 @@ from shared.logger import get_logger
 
 logger = get_logger(__name__)
 
-_SKIP_PATHS = frozenset({"/salud", "/openapi.json", "/docs", "/redoc"})
+_SKIP_PATHS = frozenset(
+    {
+        "/salud",
+        "/openapi.json",
+        "/docs",
+        "/redoc",
+        "/",
+        "/registro",
+        "/iniciar-sesion",
+        "/panel",
+    }
+)
 
 
 class AuditMiddleware(BaseHTTPMiddleware):
@@ -25,7 +36,8 @@ class AuditMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
-        if request.url.path in _SKIP_PATHS:
+        path = request.url.path
+        if path in _SKIP_PATHS or path.startswith("/static"):
             return await call_next(request)
 
         start = time.monotonic()

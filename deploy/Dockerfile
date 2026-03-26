@@ -18,5 +18,6 @@ COPY src/ src/
 COPY schema/ schema/
 COPY deploy/crontab /etc/cron.d/etl
 COPY deploy/etl-run.sh /app/deploy/etl-run.sh
+COPY deploy/stats-daily.sh /app/deploy/stats-daily.sh
 
 ENV PYTHONPATH=src
