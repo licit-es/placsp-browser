@@ -368,7 +368,9 @@ class PgEntryRepository:
         if existing:
             await conn.execute(
                 "UPDATE contracting_party SET"
-                " name=$2, dir3=$3, nif=$4,"
+                " name = CASE WHEN length($2) > length(name)"
+                "   THEN $2 ELSE name END,"
+                " dir3=$3, nif=$4,"
                 " platform_id=$5, website_uri=$6,"
                 " contracting_party_type_code=$7,"
                 " activity_code=$8,"
