@@ -35,10 +35,9 @@ async def buscar_empresas(
            JOIN tender_result tr ON tr.id = wp.tender_result_id
            WHERE wp.identifier = e.nif) AS contratos
         FROM empresa e
-        WHERE e.nombre ILIKE '%' || $1 || '%'
+        WHERE e.nombre % $1
            OR e.nif ILIKE '%' || $1 || '%'
-           OR e.ciudad ILIKE '%' || $1 || '%'
-        ORDER BY contratos DESC
+        ORDER BY similarity(e.nombre, $1) DESC, contratos DESC
         LIMIT $2
         """,
         body.q,
