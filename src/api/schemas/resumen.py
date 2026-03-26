@@ -87,6 +87,13 @@ class LicitacionResumen(BaseModel):
             return json.loads(v)
         return v or []
 
+    documentos: list[DocumentoResumen] | None = Field(
+        None,
+        description=(
+            "Documentos disponibles para descarga. "
+            "Presente en /buscar, null en otros endpoints."
+        ),
+    )
     relevancia: float | None = Field(
         None, description="Puntuacion de relevancia FTS (solo con texto libre)."
     )

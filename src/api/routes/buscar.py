@@ -29,6 +29,67 @@ _SORT_MAP = {
 }
 
 
+def _append(
+    conditions: list[str],
+    params: list[object],
+    idx: int,
+    expr: str,
+    value: object,
+) -> int:
+    """Append a single parameterised condition. Returns next param index."""
+    conditions.append(expr.replace("$N", f"${idx}"))
+    params.append(value)
+    return idx + 1
+
+
+def _apply_entity_filters(
+    f: FiltrosBusqueda,
+    conditions: list[str],
+    params: list[object],
+    idx: int,
+) -> int:
+    """Append entity/location filters. Returns next param index."""
+    if f.ccaa:
+        idx = _append(
+            conditions,
+            params,
+            idx,
+            "v.lugar_subentidad ILIKE $N",
+            f"%{f.ccaa}%",
+        )
+    if f.adjudicatario:
+        idx = _append(
+            conditions,
+            params,
+            idx,
+            "EXISTS (SELECT 1 FROM tender_result tr"
+            " JOIN winning_party wp ON wp.tender_result_id = tr.id"
+            " WHERE tr.contract_folder_status_id = v.id"
+            " AND wp.name ILIKE $N)",
+            f"%{f.adjudicatario}%",
+        )
+    if f.organo_id:
+        idx = _append(
+            conditions,
+            params,
+            idx,
+            "v.organo_id = $N",
+            f.organo_id,
+        )
+    elif f.organo:
+        idx = _append(
+            conditions,
+            params,
+            idx,
+            "v.organo ILIKE $N",
+            f"%{f.organo}%",
+        )
+    if f.financiacion_ue is not None:
+        op = "IS NOT NULL" if f.financiacion_ue else "IS NULL"
+        conditions.append(f"v.funding_program_code {op}")
+    return idx
+
+
 def _apply_filters(
     f: FiltrosBusqueda,
     conditions: list[str],
@@ -37,66 +98,72 @@ def _apply_filters(
 ) -> int:
     """Append filter conditions and params. Returns next param index."""
     if f.tipo_contrato:
-        conditions.append(f"v.type_code = ANY(${idx})")
-        params.append(to_codes("tipo_contrato", f.tipo_contrato))
-        idx += 1
+        idx = _append(
+            conditions,
+            params,
+            idx,
+            "v.type_code = ANY($N)",
+            to_codes("tipo_contrato", f.tipo_contrato),
+        )
     if f.estado:
-        conditions.append(f"v.status_code = ANY(${idx})")
-        params.append(to_codes("estado", f.estado))
-        idx += 1
+        idx = _append(
+            conditions,
+            params,
+            idx,
+            "v.status_code = ANY($N)",
+            to_codes("estado", f.estado),
+        )
     if f.cpv_prefijo:
-        conditions.append(
-            f"EXISTS (SELECT 1 FROM cpv_classification cc"
-            f" WHERE cc.contract_folder_status_id = v.id"
-            f" AND cc.item_classification_code LIKE ${idx})"
+        idx = _append(
+            conditions,
+            params,
+            idx,
+            "EXISTS (SELECT 1 FROM cpv_classification cc"
+            " WHERE cc.contract_folder_status_id = v.id"
+            " AND cc.item_classification_code LIKE $N)",
+            f"{f.cpv_prefijo}%",
         )
-        params.append(f"{f.cpv_prefijo}%")
-        idx += 1
     if f.importe_min is not None:
-        conditions.append(f"v.presupuesto_sin_iva >= ${idx}")
-        params.append(f.importe_min)
-        idx += 1
-    if f.importe_max is not None:
-        conditions.append(f"v.presupuesto_sin_iva <= ${idx}")
-        params.append(f.importe_max)
-        idx += 1
-    if f.fecha_publicacion_desde:
-        conditions.append(f"v.fecha_publicacion >= ${idx}")
-        params.append(f.fecha_publicacion_desde)
-        idx += 1
-    if f.fecha_publicacion_hasta:
-        conditions.append(f"v.fecha_publicacion <= ${idx}")
-        params.append(f.fecha_publicacion_hasta)
-        idx += 1
-    if f.procedimiento:
-        conditions.append(f"v.procedure_code = ANY(${idx})")
-        params.append(to_codes("procedimiento", f.procedimiento))
-        idx += 1
-    if f.ccaa:
-        conditions.append(f"v.lugar_subentidad ILIKE ${idx}")
-        params.append(f"%{f.ccaa}%")
-        idx += 1
-    if f.adjudicatario:
-        conditions.append(
-            f"EXISTS (SELECT 1 FROM tender_result tr"
-            f" JOIN winning_party wp ON wp.tender_result_id = tr.id"
-            f" WHERE tr.contract_folder_status_id = v.id"
-            f" AND wp.name ILIKE ${idx})"
+        idx = _append(
+            conditions,
+            params,
+            idx,
+            "v.presupuesto_sin_iva >= $N",
+            f.importe_min,
         )
-        params.append(f"%{f.adjudicatario}%")
-        idx += 1
-    if f.organo_id:
-        conditions.append(f"v.organo_id = ${idx}")
-        params.append(f.organo_id)
-        idx += 1
-    elif f.organo:
-        conditions.append(f"v.organo ILIKE ${idx}")
-        params.append(f"%{f.organo}%")
-        idx += 1
-    if f.financiacion_ue is not None:
-        op = "IS NOT NULL" if f.financiacion_ue else "IS NULL"
-        conditions.append(f"v.funding_program_code {op}")
-    return idx
+    if f.importe_max is not None:
+        idx = _append(
+            conditions,
+            params,
+            idx,
+            "v.presupuesto_sin_iva <= $N",
+            f.importe_max,
+        )
+    if f.fecha_publicacion_desde:
+        idx = _append(
+            conditions,
+            params,
+            idx,
+            "v.fecha_publicacion >= $N",
+            f.fecha_publicacion_desde,
+        )
+    if f.fecha_publicacion_hasta:
+        idx = _append(
+            conditions,
+            params,
+            idx,
+            "v.fecha_publicacion <= $N",
+            f.fecha_publicacion_hasta,
+        )
+    if f.procedimiento:
+        idx = _append(
+            conditions,
+            params,
+            idx,
+            "v.procedure_code = ANY($N)",
+            to_codes("procedimiento", f.procedimiento),
+        )
+    return _apply_entity_filters(f, conditions, params, idx)
 
 
 def _apply_cursor(
@@ -238,15 +305,10 @@ async def buscar(
         )
         for dr in doc_rows:
             docs_by_id.setdefault(dr["licitacion_id"], []).append(
-                DocumentoResumen(
-                    tipo=dr["tipo"], nombre=dr["nombre"], url=dr["url"]
-                )
+                DocumentoResumen(tipo=dr["tipo"], nombre=dr["nombre"], url=dr["url"])
             )
 
-    resultados = [
-        _row_to_resumen(r, docs_by_id.get(r["id"], []))
-        for r in rows
-    ]
+    resultados = [_row_to_resumen(r, docs_by_id.get(r["id"], [])) for r in rows]
 
     cursor_siguiente = None
     if has_next and rows:

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from uuid import UUID
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.deps import get_conn
 from api.schemas import (
@@ -14,6 +15,8 @@ from api.schemas import (
     OrganoResumen,
     OrganoStats,
     PeticionBusquedaOrganos,
+    decode_cursor,
+    encode_cursor,
 )
 
 router = APIRouter(tags=["Organos"])
@@ -64,8 +67,10 @@ async def buscar_organos(
 async def get_organo(
     organo_id: UUID,
     conn: asyncpg.Connection = Depends(get_conn),
+    limit: int = Query(20, ge=1, le=100, description="Resultados por pagina."),
+    cursor: str | None = Query(None, description="Cursor de paginacion."),
 ) -> OrganoDetalle:
-    """Contracting body profile with stats and recent tenders."""
+    """Contracting body profile with stats and paginated tenders."""
     # Use v_licitacion for a single row to get resolved organo fields
     org = await conn.fetchrow(
         "SELECT organo_id, organo, organo_nif, organo_tipo"
@@ -103,8 +108,16 @@ async def get_organo(
         organo_id,
     )
 
-    recientes = await conn.fetch(
-        """
+    # Paginated licitaciones
+    cursor_cond = ""
+    params: list[object] = [organo_id, limit + 1]
+    if cursor:
+        sort_val, cursor_id = decode_cursor(cursor)
+        cursor_cond = " AND (v.fecha_actualizacion, v.id) < ($3::timestamptz, $4::uuid)"
+        params.extend([datetime.fromisoformat(sort_val), cursor_id])
+
+    rows = await conn.fetch(
+        f"""
         SELECT v.id, v.expediente, v.titulo, v.organo,
                v.tipo_contrato, v.estado, v.presupuesto_sin_iva,
                v.importe_adjudicacion, v.fecha_publicacion,
@@ -114,11 +127,20 @@ async def get_organo(
                v.tiene_documentos, v.num_lotes,
                v.historial_estados
         FROM v_licitacion v
-        WHERE v.organo_id = $1
-        ORDER BY v.fecha_actualizacion DESC LIMIT 20
+        WHERE v.organo_id = $1 {cursor_cond}
+        ORDER BY v.fecha_actualizacion DESC, v.id DESC
+        LIMIT $2
         """,
-        organo_id,
+        *params,
     )
+    has_next = len(rows) > limit
+    if has_next:
+        rows = rows[:limit]
+
+    cursor_siguiente = None
+    if has_next and rows:
+        last = rows[-1]
+        cursor_siguiente = encode_cursor(last["fecha_actualizacion"], last["id"])
 
     plazo = stats_row["plazo_medio"] if stats_row else None
 
@@ -133,7 +155,7 @@ async def get_organo(
             cpv_frecuentes=[r["codigo"] for r in cpv_rows],
             plazo_medio_adjudicacion_dias=(round(plazo) if plazo is not None else None),
         ),
-        licitaciones_recientes=[
+        licitaciones=[
             LicitacionResumen(
                 id=r["id"],
                 expediente=r["expediente"],
@@ -154,6 +176,7 @@ async def get_organo(
                 num_lotes=r["num_lotes"],
                 historial_estados=r["historial_estados"] or [],
             )
-            for r in recientes
+            for r in rows
         ],
+        cursor_siguiente=cursor_siguiente,
     )

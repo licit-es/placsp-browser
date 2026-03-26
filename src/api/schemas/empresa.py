@@ -59,6 +59,13 @@ class EmpresaDetalle(BaseModel):
     id: str = Field(description="Identificador de la empresa en el sistema.")
     nombre: str = Field(description="Nombre o razon social.")
     stats: EmpresaStats = Field(description="Estadisticas agregadas.")
-    adjudicaciones_recientes: list[LicitacionResumen] = Field(
-        description="Ultimas 20 adjudicaciones."
+    adjudicaciones: list[LicitacionResumen] = Field(
+        description="Adjudicaciones paginadas."
+    )
+    cursor_siguiente: str | None = Field(
+        None,
+        description=(
+            "Cursor opaco para la siguiente pagina de adjudicaciones. "
+            "null si no hay mas resultados."
+        ),
     )

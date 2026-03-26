@@ -17,9 +17,7 @@ class PeticionBusquedaOrganos(BaseModel):
         min_length=2,
         description="Texto de busqueda (nombre, NIF o DIR3).",
     )
-    limite: int = Field(
-        default=20, ge=1, le=100, description="Maximo de resultados."
-    )
+    limite: int = Field(default=20, ge=1, le=100, description="Maximo de resultados.")
 
 
 class OrganoResumen(BaseModel):
@@ -28,9 +26,7 @@ class OrganoResumen(BaseModel):
     id: UUID = Field(description="Identificador unico del organo.")
     nombre: str = Field(description="Nombre del organo.")
     nif: str | None = Field(description="NIF del organo.")
-    licitaciones: int = Field(
-        description="Numero de licitaciones publicadas."
-    )
+    licitaciones: int = Field(description="Numero de licitaciones publicadas.")
 
 
 class OrganoStats(BaseModel):
@@ -56,6 +52,11 @@ class OrganoDetalle(BaseModel):
     nif: str | None = Field(description="NIF del organo.")
     tipo: str | None = Field(description="Tipo de organo (AGE, CCAA, Local...).")
     stats: OrganoStats = Field(description="Estadisticas agregadas.")
-    licitaciones_recientes: list[LicitacionResumen] = Field(
-        description="Ultimas 20 licitaciones publicadas."
+    licitaciones: list[LicitacionResumen] = Field(description="Licitaciones paginadas.")
+    cursor_siguiente: str | None = Field(
+        None,
+        description=(
+            "Cursor opaco para la siguiente pagina de licitaciones. "
+            "null si no hay mas resultados."
+        ),
     )

@@ -84,8 +84,7 @@ async def get_licitacion(
                 lot_ids,
             ),
             await conn.fetch(
-                "SELECT lote_id, codigo FROM v_cpv"
-                " WHERE lote_id = ANY($1)",
+                "SELECT lote_id, codigo FROM v_cpv WHERE lote_id = ANY($1)",
                 lot_ids,
             ),
         )
@@ -113,10 +112,7 @@ async def get_licitacion(
                 presupuesto_sin_iva=lr["presupuesto_sin_iva"],
                 cpv=[c["codigo"] for c in cpv_by_lot[lot_id]],
                 criterios=[Criterio(**dict(r)) for r in crit_by_lot[lot_id]],
-                solvencia=[
-                    RequisitoSolvencia(**dict(r))
-                    for r in solv_by_lot[lot_id]
-                ],
+                solvencia=[RequisitoSolvencia(**dict(r)) for r in solv_by_lot[lot_id]],
             )
         )
 
