@@ -1,4 +1,4 @@
--- Landing page statistics (materialized, refreshed daily via pg_cron).
+-- Landing page statistics (materialized, refreshed daily via cron).
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_landing_stats AS
 SELECT
@@ -17,18 +17,3 @@ CREATE OR REPLACE FUNCTION refresh_mv_landing_stats() RETURNS void AS $$
 BEGIN
   REFRESH MATERIALIZED VIEW CONCURRENTLY mv_landing_stats;
 END $$ LANGUAGE plpgsql;
-
--- pg_cron: refresh daily at 05:00 UTC (after ETL hourly + catalog at 03:00).
--- Skipped gracefully when pg_cron is not installed (e.g. CI).
-DO $$
-BEGIN
-  CREATE EXTENSION IF NOT EXISTS pg_cron;
-  PERFORM cron.unschedule('refresh-mv-landing-stats');
-  PERFORM cron.schedule(
-    'refresh-mv-landing-stats',
-    '0 5 * * *',
-    'SELECT refresh_mv_landing_stats()'
-  );
-EXCEPTION WHEN OTHERS THEN
-  RAISE NOTICE 'pg_cron not available, skipping schedule: %', SQLERRM;
-END $$;

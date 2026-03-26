@@ -7,7 +7,6 @@ x-logging: &default-logging
 services:
   postgres:
     image: postgres:16-alpine
-    command: postgres -c shared_preload_libraries=pg_cron -c cron.database_name=licit
     logging: *default-logging
     environment:
       POSTGRES_DB: licit

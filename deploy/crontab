@@ -5,6 +5,9 @@
 # Catalog updater: daily at 03:00
 0 3 * * * /app/deploy/etl-run.sh catalog_updater etl.handlers.catalog_updater
 
+# Refresh landing page stats: daily at 05:00 UTC
+0 5 * * * psql "$DATABASE_URL" -c "SELECT refresh_mv_landing_stats();" --quiet >> /var/log/etl/stats.log 2>&1
+
 # API daily stats → Discord: 08:00 UTC
 0 8 * * * /app/deploy/stats-daily.sh >> /var/log/etl/stats.log 2>&1
 
