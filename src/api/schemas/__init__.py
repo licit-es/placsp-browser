@@ -19,7 +19,12 @@ from api.schemas.empresa import (
     PeticionBusquedaEmpresas,
 )
 from api.schemas.organo import OrganoDetalle, OrganoStats
-from api.schemas.resumen import CambioEstado, LicitacionResumen, RespuestaBusqueda
+from api.schemas.resumen import (
+    CambioEstado,
+    DocumentoResumen,
+    LicitacionResumen,
+    RespuestaBusqueda,
+)
 from api.schemas.similares import (
     EstadisticasSimilares,
     LicitacionSimilar,
@@ -31,6 +36,7 @@ __all__ = [
     "CambioEstado",
     "Criterio",
     "Documento",
+    "DocumentoResumen",
     "EmpresaDetalle",
     "EmpresaResumen",
     "EmpresaStats",

@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends
 from api.catalogs import to_codes
 from api.deps import get_conn
 from api.schemas import (
+    DocumentoResumen,
     FiltrosBusqueda,
     LicitacionResumen,
     PeticionBusqueda,
@@ -135,7 +136,10 @@ def _apply_cursor(
     return idx
 
 
-def _row_to_resumen(r: asyncpg.Record) -> LicitacionResumen:
+def _row_to_resumen(
+    r: asyncpg.Record,
+    docs: list[DocumentoResumen] | None = None,
+) -> LicitacionResumen:
     return LicitacionResumen(
         id=r["id"],
         expediente=r["expediente"],
@@ -155,6 +159,7 @@ def _row_to_resumen(r: asyncpg.Record) -> LicitacionResumen:
         tiene_documentos=r["tiene_documentos"],
         num_lotes=r["num_lotes"],
         historial_estados=r["historial_estados"] or [],
+        documentos=docs,
         relevancia=round(float(r["rank"]), 4) if r["rank"] else None,
     )
 
@@ -222,7 +227,26 @@ async def buscar(
     if has_next:
         rows = rows[: body.limit]
 
-    resultados = [_row_to_resumen(r) for r in rows]
+    # Batch-fetch documents for the result page
+    result_ids = [r["id"] for r in rows]
+    docs_by_id: dict[object, list[DocumentoResumen]] = {}
+    if result_ids:
+        doc_rows = await conn.fetch(
+            "SELECT licitacion_id, tipo, nombre, url"
+            " FROM v_documento WHERE licitacion_id = ANY($1)",
+            result_ids,
+        )
+        for dr in doc_rows:
+            docs_by_id.setdefault(dr["licitacion_id"], []).append(
+                DocumentoResumen(
+                    tipo=dr["tipo"], nombre=dr["nombre"], url=dr["url"]
+                )
+            )
+
+    resultados = [
+        _row_to_resumen(r, docs_by_id.get(r["id"], []))
+        for r in rows
+    ]
 
     cursor_siguiente = None
     if has_next and rows:

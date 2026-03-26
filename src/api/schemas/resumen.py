@@ -17,6 +17,14 @@ class CambioEstado(BaseModel):
     fecha: datetime = Field(description="Fecha del cambio de estado.")
 
 
+class DocumentoResumen(BaseModel):
+    """Referencia a documento dentro de un resumen de licitacion."""
+
+    tipo: str | None = Field(description="Tipo de documento (Pliego, Anuncio...).")
+    nombre: str | None = Field(description="Nombre del fichero.")
+    url: str | None = Field(description="URL directa al documento.")
+
+
 class LicitacionResumen(BaseModel):
     """Resumen de licitacion para resultados de busqueda.
 
