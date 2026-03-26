@@ -104,7 +104,7 @@ CREATE INDEX IF NOT EXISTS idx_empresa_nombre_trgm
 
 -- v_licitacion: one row per tender, all codes resolved to labels
 -- DROP required when columns are renamed or reordered (PG limitation).
-DROP VIEW IF EXISTS v_licitacion;
+DROP VIEW IF EXISTS v_licitacion CASCADE;
 CREATE OR REPLACE VIEW v_licitacion AS
 SELECT
   cfs.id,
