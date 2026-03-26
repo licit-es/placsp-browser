@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}licit{% endblock %}</title>
+  <meta name="description" content="{% block description %}API estructurada de licitaciones publicas de Espana{% endblock %}">
+  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+  <script>
+    (function(){
+      var t = localStorage.getItem('theme')
+        || (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+      document.documentElement.dataset.theme = t;
+    })();
+  </script>
+</head>
+<body>
+  <nav>
+    <div class="container">
+      <a href="/" class="brand">licit</a>
+      <div class="nav-links">
+        <a href="/docs">API</a>
+        <a href="/registro" id="nav-registro">Registro</a>
+        <a href="/iniciar-sesion" id="nav-login">Entrar</a>
+        <a href="/panel" id="nav-panel" class="hidden">Panel</a>
+        <a href="#" id="nav-logout" class="hidden">Salir</a>
+        <button id="theme-toggle" aria-label="Cambiar tema">&bull;</button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <div class="container">
+      <span>licit &mdash; datos de la <a href="https://contrataciondelestado.es" rel="noopener">PLACSP</a></span>
+      <a href="https://github.com/alvdef/placsp-browser" rel="noopener">GitHub</a>
+    </div>
+  </footer>
+
+  <script>
+    // Theme toggle
+    document.getElementById('theme-toggle').addEventListener('click', function() {
+      var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem('theme', next);
+    });
+
+    // Nav auth state
+    (function() {
+      var key = localStorage.getItem('licit_api_key');
+      if (key) {
+        document.getElementById('nav-registro').classList.add('hidden');
+        document.getElementById('nav-login').classList.add('hidden');
+        document.getElementById('nav-panel').classList.remove('hidden');
+        document.getElementById('nav-logout').classList.remove('hidden');
+      }
+      document.getElementById('nav-logout').addEventListener('click', function(e) {
+        e.preventDefault();
+        localStorage.removeItem('licit_api_key');
+        window.location.href = '/';
+      });
+    })();
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

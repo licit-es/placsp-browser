@@ -45,7 +45,7 @@ def test_openapi_available(client: TestClient) -> None:
     response = client.get("/openapi.json")
     assert response.status_code == 200
     schema = response.json()
-    assert schema["info"]["title"] == "PLACSP API"
+    assert schema["info"]["title"] == "licit"
     assert "/salud" in schema["paths"]
     assert "/v1/buscar" in schema["paths"]
     assert "/v1/licitacion/{licitacion_id}" in schema["paths"]

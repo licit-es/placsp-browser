@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Self
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
@@ -117,7 +118,7 @@ class LicitacionResumen(BaseModel):
     )
 
     @classmethod
-    def from_row(cls, r: object, **extras: object) -> LicitacionResumen:
+    def from_row(cls, r: object, **extras: object) -> Self:
         """Build from an asyncpg.Record (or any mapping).
 
         Extra keyword args are forwarded to the constructor, so callers
@@ -142,7 +143,7 @@ class LicitacionResumen(BaseModel):
             tiene_documentos=r["tiene_documentos"],  # type: ignore[index]
             num_lotes=r["num_lotes"],  # type: ignore[index]
             historial_estados=r["historial_estados"] or [],  # type: ignore[index]
-            **extras,  # type: ignore[arg-type]
+            **extras,
         )
 
 

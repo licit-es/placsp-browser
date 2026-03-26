@@ -41,7 +41,7 @@ router = APIRouter(prefix="/auth", tags=["Autenticacion"])
 )
 async def registro(
     body: RegistroPeticion,
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
 ) -> RegistroRespuesta:
     """Register a new user. Returns user info and first API key."""
     pw_hash = hash_password(body.contrasena)
@@ -89,7 +89,7 @@ async def registro(
 )
 async def login(
     body: LoginPeticion,
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
 ) -> LoginRespuesta:
     """Authenticate with email+password, returns a new API key."""
     user = await conn.fetchrow(
@@ -158,7 +158,7 @@ async def perfil(
 )
 async def listar_claves(
     user: asyncpg.Record = Depends(get_current_user),
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
 ) -> list[ClaveResumen]:
     """List the authenticated user's API keys (prefix only)."""
     rows = await conn.fetch(
@@ -180,7 +180,7 @@ async def listar_claves(
 async def crear_clave(
     body: PeticionClave,
     user: asyncpg.Record = Depends(get_current_user),
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
 ) -> ClaveCreada:
     """Create an additional API key for the authenticated user."""
     plaintext, key_hash, key_prefix = generate_api_key()
@@ -206,7 +206,7 @@ async def crear_clave(
 async def revocar_clave(
     clave_id: UUID,
     user: asyncpg.Record = Depends(get_current_user),
-    conn: asyncpg.Connection = Depends(get_conn),  # type: ignore[assignment]
+    conn: asyncpg.Connection = Depends(get_conn),
 ) -> None:
     """Deactivate one of the authenticated user's API keys."""
     result = await conn.execute(
