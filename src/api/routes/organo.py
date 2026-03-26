@@ -1,4 +1,4 @@
-"""GET /organo/{id} — contracting body profile."""
+"""Organo endpoints — search and profile."""
 
 from __future__ import annotations
 
@@ -8,9 +8,52 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.deps import get_conn
-from api.schemas import LicitacionResumen, OrganoDetalle, OrganoStats
+from api.schemas import (
+    LicitacionResumen,
+    OrganoDetalle,
+    OrganoResumen,
+    OrganoStats,
+    PeticionBusquedaOrganos,
+)
 
 router = APIRouter(tags=["Organos"])
+
+
+@router.post(
+    "/organos",
+    response_model=list[OrganoResumen],
+    summary="Buscar organos de contratacion",
+)
+async def buscar_organos(
+    body: PeticionBusquedaOrganos,
+    conn: asyncpg.Connection = Depends(get_conn),
+) -> list[OrganoResumen]:
+    """Search contracting bodies by name, NIF or DIR3."""
+    rows = await conn.fetch(
+        """
+        SELECT cp.id, cp.name, cp.nif,
+          (SELECT count(*)
+           FROM contract_folder_status cfs
+           WHERE cfs.contracting_party_id = cp.id) AS licitaciones
+        FROM contracting_party cp
+        WHERE cp.name % $1
+           OR cp.nif ILIKE '%' || $1 || '%'
+           OR cp.dir3 ILIKE '%' || $1 || '%'
+        ORDER BY similarity(cp.name, $1) DESC, licitaciones DESC
+        LIMIT $2
+        """,
+        body.q,
+        body.limite,
+    )
+    return [
+        OrganoResumen(
+            id=r["id"],
+            nombre=r["name"],
+            nif=r["nif"],
+            licitaciones=r["licitaciones"],
+        )
+        for r in rows
+    ]
 
 
 @router.get(

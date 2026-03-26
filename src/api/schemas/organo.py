@@ -1,4 +1,4 @@
-"""Response schemas for GET /organo/{id}."""
+"""Response schemas for organo endpoints."""
 
 from __future__ import annotations
 
@@ -8,6 +8,29 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from api.schemas.resumen import LicitacionResumen
+
+
+class PeticionBusquedaOrganos(BaseModel):
+    """Request body para busqueda de organos de contratacion."""
+
+    q: str = Field(
+        min_length=2,
+        description="Texto de busqueda (nombre, NIF o DIR3).",
+    )
+    limite: int = Field(
+        default=20, ge=1, le=100, description="Maximo de resultados."
+    )
+
+
+class OrganoResumen(BaseModel):
+    """Resultado de busqueda de organo de contratacion."""
+
+    id: UUID = Field(description="Identificador unico del organo.")
+    nombre: str = Field(description="Nombre del organo.")
+    nif: str | None = Field(description="NIF del organo.")
+    licitaciones: int = Field(
+        description="Numero de licitaciones publicadas."
+    )
 
 
 class OrganoStats(BaseModel):
