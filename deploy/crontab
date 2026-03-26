@@ -5,5 +5,8 @@
 # Catalog updater: daily at 03:00
 0 3 * * * /app/deploy/etl-run.sh catalog_updater etl.handlers.catalog_updater
 
+# API daily stats → Discord: 08:00 UTC
+0 8 * * * /app/deploy/stats-daily.sh >> /var/log/etl/stats.log 2>&1
+
 # Log rotation: daily at 04:00 — compress logs over 10 MB
 0 4 * * * find /var/log/etl -name '*.log' -size +10M -exec sh -c 'mv "$1" "$1.$(date +\%Y\%m\%d).old" && gzip -f "$1.$(date +\%Y\%m\%d).old"' _ {} \;
