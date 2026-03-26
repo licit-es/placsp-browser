@@ -7,6 +7,7 @@ from datetime import datetime
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from api.auth import get_current_user
 from api.deps import get_conn
 from api.schemas import (
     DISPLAY_COLS,
@@ -31,6 +32,7 @@ router = APIRouter(tags=["Empresas"])
 async def buscar_empresas(
     body: PeticionBusquedaEmpresas,
     conn: asyncpg.Connection = Depends(get_conn),
+    _user: asyncpg.Record = Depends(get_current_user),
 ) -> list[EmpresaResumen]:
     """Search companies by name, NIF or city."""
     rows = await conn.fetch(
@@ -67,6 +69,7 @@ async def buscar_empresas(
 async def get_empresa(
     empresa_id: str,
     conn: asyncpg.Connection = Depends(get_conn),
+    _user: asyncpg.Record = Depends(get_current_user),
     limit: int = Query(20, ge=1, le=100, description="Resultados por pagina."),
     cursor: str | None = Query(None, description="Cursor de paginacion."),
 ) -> EmpresaDetalle:

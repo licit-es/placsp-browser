@@ -18,6 +18,7 @@ def client() -> Iterator[TestClient]:
 
     pool = AsyncMock()
     pool.close = AsyncMock()
+    pool.execute = AsyncMock()
 
     @asynccontextmanager
     async def _acquire():  # type: ignore[no-untyped-def]
@@ -44,9 +45,7 @@ def test_openapi_available(client: TestClient) -> None:
     response = client.get("/openapi.json")
     assert response.status_code == 200
     schema = response.json()
-    assert schema["info"]["title"] == "PLACSP Browser"
+    assert schema["info"]["title"] == "PLACSP API"
     assert "/salud" in schema["paths"]
-    assert "/api/v1/contratos" in schema["paths"]
-    assert "/api/v1/organos-contratantes" in schema["paths"]
-    assert "/api/v1/lotes" in schema["paths"]
-    assert "/api/v1/documentos" in schema["paths"]
+    assert "/v1/buscar" in schema["paths"]
+    assert "/v1/licitacion/{licitacion_id}" in schema["paths"]

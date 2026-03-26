@@ -7,6 +7,7 @@ from uuid import UUID
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from api.auth import get_current_user
 from api.deps import get_conn
 from api.inteligencia.estadisticas import confidence
 from api.inteligencia.similares import IntelligenceResult, compute_intelligence
@@ -31,6 +32,7 @@ router = APIRouter(tags=["Similares"])
 async def get_similares(
     licitacion_id: UUID,
     conn: asyncpg.Connection = Depends(get_conn),
+    _user: asyncpg.Record = Depends(get_current_user),
     estado: str | None = Query(None, description="Filtrar por estado"),
     limit: int = Query(10, ge=1, le=50),
 ) -> RespuestaSimilares:

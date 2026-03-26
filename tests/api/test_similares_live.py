@@ -8,7 +8,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-BASE = "https://api.licit.es/api/v1"
+BASE = "https://api.licit.es/v1"
 
 # A real tender from production (Soporte Microsoft, Ayto Málaga).
 REF_ID = "c1d8e9b3-2adb-41d9-8285-173fdb42439a"

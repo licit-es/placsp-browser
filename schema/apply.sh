@@ -30,6 +30,7 @@ cat \
   "$SCHEMA_DIR"/09_etl.sql \
   "$SCHEMA_DIR"/10_catalog.sql \
   "$SCHEMA_DIR"/11_api.sql \
+  "$SCHEMA_DIR"/12_auth.sql \
 | psql "$DB_URL" --single-transaction --set ON_ERROR_STOP=on
 
 echo "Schema applied."
@@ -54,6 +55,11 @@ GRANT CONNECT ON DATABASE licit TO licit_api;
 GRANT USAGE ON SCHEMA public TO licit_api;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO licit_api;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO licit_api;
+-- Auth tables: API needs INSERT/UPDATE for registration, login, key mgmt
+GRANT INSERT, UPDATE ON api_user TO licit_api;
+GRANT INSERT, UPDATE ON api_key TO licit_api;
+GRANT INSERT ON audit_log TO licit_api;
+GRANT USAGE, SELECT ON SEQUENCE audit_log_id_seq TO licit_api;
 SQL
 echo "API user ready."
 

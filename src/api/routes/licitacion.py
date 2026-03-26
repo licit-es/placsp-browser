@@ -8,6 +8,7 @@ from uuid import UUID
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 
+from api.auth import get_current_user
 from api.deps import get_conn
 from api.schemas import (
     LICITACION_VIEW,
@@ -32,6 +33,7 @@ router = APIRouter(tags=["Licitaciones"])
 async def get_licitacion(
     licitacion_id: UUID,
     conn: asyncpg.Connection = Depends(get_conn),
+    _user: asyncpg.Record = Depends(get_current_user),
 ) -> LicitacionDetalle:
     """Return full tender detail with nested criterios, solvencia, lotes, docs."""
     row = await conn.fetchrow(

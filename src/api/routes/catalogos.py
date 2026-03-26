@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 
+from api.auth import get_current_user
 from api.deps import get_conn
 
 router = APIRouter(tags=["Catalogos"])
@@ -31,7 +32,9 @@ _CATALOG_MAP: dict[str, str] = {
     "/catalogos",
     summary="Catalogos disponibles",
 )
-async def list_catalogos() -> dict[str, list[str]]:
+async def list_catalogos(
+    _user: asyncpg.Record = Depends(get_current_user),
+) -> dict[str, list[str]]:
     """List available catalog types for filter value discovery."""
     return {"catalogos": sorted(_CATALOG_MAP.keys())}
 
@@ -43,6 +46,7 @@ async def list_catalogos() -> dict[str, list[str]]:
 async def get_catalogo(
     tipo: str,
     conn: asyncpg.Connection = Depends(get_conn),
+    _user: asyncpg.Record = Depends(get_current_user),
 ) -> dict[str, object]:
     """Return all values for a catalog type, for filter discovery."""
     table = _CATALOG_MAP.get(tipo)

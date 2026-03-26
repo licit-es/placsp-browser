@@ -8,6 +8,7 @@ from uuid import UUID
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from api.auth import get_current_user
 from api.deps import get_conn
 from api.schemas import (
     DISPLAY_COLS,
@@ -32,6 +33,7 @@ router = APIRouter(tags=["Organos"])
 async def buscar_organos(
     body: PeticionBusquedaOrganos,
     conn: asyncpg.Connection = Depends(get_conn),
+    _user: asyncpg.Record = Depends(get_current_user),
 ) -> list[OrganoResumen]:
     """Search contracting bodies by name, NIF or DIR3."""
     rows = await conn.fetch(
@@ -69,6 +71,7 @@ async def buscar_organos(
 async def get_organo(
     organo_id: UUID,
     conn: asyncpg.Connection = Depends(get_conn),
+    _user: asyncpg.Record = Depends(get_current_user),
     limit: int = Query(20, ge=1, le=100, description="Resultados por pagina."),
     cursor: str | None = Query(None, description="Cursor de paginacion."),
 ) -> OrganoDetalle:

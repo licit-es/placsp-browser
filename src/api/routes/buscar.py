@@ -6,8 +6,9 @@ from datetime import datetime
 from decimal import Decimal
 
 import asyncpg
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
+from api.auth import get_current_user
 from api.catalogs import to_codes
 from api.deps import get_conn
 from api.schemas import (
@@ -22,7 +23,7 @@ from api.schemas import (
     encode_cursor,
 )
 
-router = APIRouter(tags=["Buscar"])
+router = APIRouter(tags=["Licitaciones"])
 
 _SORT_MAP = {
     "fecha": "v.fecha_actualizacion DESC, v.id DESC",
@@ -223,9 +224,12 @@ def _row_to_resumen(
 )
 async def buscar(
     body: PeticionBusqueda,
+    request: Request,
     conn: asyncpg.Connection = Depends(get_conn),
+    _user: asyncpg.Record = Depends(get_current_user),
 ) -> RespuestaBusqueda:
     """Unified search: free text + structured filters, cursor pagination."""
+    request.state.search_params = body.model_dump(exclude_none=True)
     conditions: list[str] = []
     params: list[object] = []
     idx = 1

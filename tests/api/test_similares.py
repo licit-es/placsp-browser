@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from collections.abc import Iterator
-from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from decimal import Decimal
 from unittest.mock import AsyncMock, patch
@@ -108,31 +106,15 @@ def _sparse_intel() -> IntelligenceResult:
 
 
 @pytest.fixture
-def conn() -> AsyncMock:
-    """Shared connection mock — tests configure .fetch before requests."""
-    c = AsyncMock()
-    c.fetchval = AsyncMock(return_value=1)
-    c.fetchrow = AsyncMock(return_value=None)
-    c.fetch = AsyncMock(return_value=[])
-    return c
+def conn(auth_conn: AsyncMock) -> AsyncMock:
+    """Alias for auth_conn — tests configure .fetch before requests."""
+    return auth_conn
 
 
 @pytest.fixture
-def client(conn: AsyncMock) -> Iterator[TestClient]:
-    pool = AsyncMock()
-    pool.close = AsyncMock()
-
-    @asynccontextmanager
-    async def _acquire():
-        yield conn
-
-    pool.acquire = _acquire
-
-    with patch("api.main.create_pool", return_value=pool):
-        from api.main import app
-
-        with TestClient(app) as c:
-            yield c
+def client(auth_client: TestClient) -> TestClient:
+    """Alias for auth_client with auth overridden."""
+    return auth_client
 
 
 # -------------------------------------------------------------------
@@ -154,7 +136,7 @@ class TestFullResponse:
             "api.routes.similares.compute_intelligence",
             return_value=_full_intel(),
         ):
-            resp = client.get(f"/api/v1/similares/{_REF_ID}")
+            resp = client.get(f"/v1/similares/{_REF_ID}")
 
         assert resp.status_code == 200
         body = resp.json()
@@ -199,7 +181,7 @@ class TestFullResponse:
             "api.routes.similares.compute_intelligence",
             return_value=_full_intel(),
         ):
-            resp = client.get(f"/api/v1/similares/{_REF_ID}")
+            resp = client.get(f"/v1/similares/{_REF_ID}")
 
         scores = [r["similitud"] for r in resp.json()["resultados"]]
         assert scores == [7, 4]
@@ -212,7 +194,7 @@ class TestFullResponse:
             "api.routes.similares.compute_intelligence",
             return_value=_full_intel(),
         ):
-            resp = client.get(f"/api/v1/similares/{_REF_ID}?limit=1")
+            resp = client.get(f"/v1/similares/{_REF_ID}?limit=1")
 
         first = resp.json()["resultados"][0]
         assert "similitud" in first
@@ -225,7 +207,7 @@ class TestFullResponse:
             "api.routes.similares.compute_intelligence",
             return_value=_full_intel(),
         ):
-            resp = client.get(f"/api/v1/similares/{_REF_ID}?limit=1")
+            resp = client.get(f"/v1/similares/{_REF_ID}?limit=1")
 
         assert len(resp.json()["resultados"]) == 1
         # But estadisticas still reflect the full pool
@@ -243,7 +225,7 @@ class TestEdgeCases:
             "api.routes.similares.compute_intelligence",
             return_value=None,
         ):
-            resp = client.get(f"/api/v1/similares/{uuid.uuid4()}")
+            resp = client.get(f"/v1/similares/{uuid.uuid4()}")
 
         assert resp.status_code == 404
 
@@ -252,7 +234,7 @@ class TestEdgeCases:
             "api.routes.similares.compute_intelligence",
             return_value=_empty_intel(),
         ):
-            resp = client.get(f"/api/v1/similares/{_REF_ID}")
+            resp = client.get(f"/v1/similares/{_REF_ID}")
 
         assert resp.status_code == 200
         body = resp.json()
@@ -272,7 +254,7 @@ class TestEdgeCases:
             "api.routes.similares.compute_intelligence",
             return_value=_sparse_intel(),
         ):
-            resp = client.get(f"/api/v1/similares/{_REF_ID}")
+            resp = client.get(f"/v1/similares/{_REF_ID}")
 
         est = resp.json()["estadisticas"]
         assert est["baja_pct"] is None

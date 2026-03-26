@@ -8,7 +8,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from api.catalogs import load as load_catalogs
+from api.middleware import AuditMiddleware
 from api.routes import (
+    admin,
+    auth,
     buscar,
     catalogos,
     empresa,
@@ -39,10 +42,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(AuditMiddleware)
+
 app.include_router(salud.router)
-app.include_router(buscar.router, prefix="/api/v1")
-app.include_router(licitacion.router, prefix="/api/v1")
-app.include_router(empresa.router, prefix="/api/v1")
-app.include_router(organo.router, prefix="/api/v1")
-app.include_router(similares.router, prefix="/api/v1")
-app.include_router(catalogos.router, prefix="/api/v1")
+app.include_router(auth.router, prefix="/v1")
+app.include_router(admin.router, prefix="/v1")
+app.include_router(buscar.router, prefix="/v1")
+app.include_router(licitacion.router, prefix="/v1")
+app.include_router(empresa.router, prefix="/v1")
+app.include_router(organo.router, prefix="/v1")
+app.include_router(similares.router, prefix="/v1")
+app.include_router(catalogos.router, prefix="/v1")
