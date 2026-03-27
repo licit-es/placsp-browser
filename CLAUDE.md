@@ -24,5 +24,6 @@
 
 ## Deploy
 - Single Hetzner machine, Docker Compose: `cd deploy && docker compose up -d`
-- Schema: `./schema/apply.sh $DATABASE_URL` (idempotent, plain Postgres).
 - This repository is public on GitHub, take that into consideration
+- Make sure the actions pass. All tests must pass before pushing to remote.
+- Fix everything, even if you dont made the errors. 
