@@ -131,3 +131,4 @@ fail_under = 85
 test = "pytest"
 lint = "ruff check . && ruff format --check . && sh -c '! grep -rn \"# noqa\" src/ tests/ || { echo \"ERROR: Use per-file-ignores in pyproject.toml instead of inline noqa\"; exit 1; }'"
 fix = "ruff check --fix . && ruff format ."
+dev = "docker compose -f docker-compose.dev.yml up --build"

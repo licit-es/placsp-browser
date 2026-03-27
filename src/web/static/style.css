@@ -24,20 +24,6 @@
   --sp-2xl: 6rem;
 }
 
-[data-theme="dark"] {
-  --bg: #0a0a0a;
-  --fg: #e5e5e5;
-  --fg-muted: #999;
-  --fg-faint: #666;
-  --border: #2a2a2a;
-  --accent: #e5e5e5;
-  --accent-hover: #0a0a0a;
-  --input-bg: transparent;
-  --code-bg: #1a1a1a;
-  --success: #3fb950;
-  --error: #f85149;
-}
-
 /* --- Reset --- */
 
 *,
@@ -63,7 +49,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  transition: color 0.15s, background 0.15s;
+
 }
 
 a {
@@ -126,19 +112,6 @@ nav .container {
 }
 
 .nav-links a:hover {
-  color: var(--fg);
-}
-
-#theme-toggle {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--fg-muted);
-  font-size: 0.875rem;
-  padding: 0;
-}
-
-#theme-toggle:hover {
   color: var(--fg);
 }
 
