@@ -1,18 +1,11 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}licit{% endblock %}</title>
   <meta name="description" content="{% block description %}API estructurada de licitaciones publicas de Espana{% endblock %}">
   <link rel="stylesheet" href="/static/style.css">
-  <script>
-    (function(){
-      var t = localStorage.getItem('theme')
-        || (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
-      document.documentElement.dataset.theme = t;
-    })();
-  </script>
 </head>
 <body>
   <nav>
@@ -24,7 +17,6 @@
         <a href="/iniciar-sesion" id="nav-login">Entrar</a>
         <a href="/panel" id="nav-panel" class="hidden">Panel</a>
         <a href="#" id="nav-logout" class="hidden">Salir</a>
-        <button id="theme-toggle" aria-label="Cambiar tema">&bull;</button>
       </div>
     </div>
   </nav>
@@ -41,13 +33,6 @@
   </footer>
 
   <script>
-    // Theme toggle
-    document.getElementById('theme-toggle').addEventListener('click', function() {
-      var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = next;
-      localStorage.setItem('theme', next);
-    });
-
     // Nav auth state
     (function() {
       var key = localStorage.getItem('licit_api_key');
