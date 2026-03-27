@@ -103,8 +103,7 @@ CREATE INDEX IF NOT EXISTS idx_empresa_nombre_trgm
 -- =================================================================
 
 -- v_licitacion: one row per tender, all codes resolved to labels
--- DROP required when columns are renamed or reordered (PG limitation).
-DROP VIEW IF EXISTS v_licitacion CASCADE;
+-- NOTE: if columns change, run DROP VIEW v_licitacion CASCADE manually first.
 CREATE OR REPLACE VIEW v_licitacion AS
 SELECT
   cfs.id,
@@ -325,15 +324,20 @@ LEFT JOIN contracting_party cp ON cp.id = cfs.contracting_party_id;
 -- Idempotent. Prefers non-UTE names, then longest.
 -- =================================================================
 
-INSERT INTO empresa (nif, nombre, ciudad, tipo)
-SELECT DISTINCT ON (identifier)
-  identifier, name, city_name, company_type_code
-FROM winning_party
-WHERE identifier IS NOT NULL
-ORDER BY identifier,
-  CASE WHEN name ~* '^U\.?T\.?E\.?\s' THEN 1 ELSE 0 END,
-  length(name) DESC NULLS LAST
-ON CONFLICT (nif) DO NOTHING;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM empresa LIMIT 1) THEN
+    INSERT INTO empresa (nif, nombre, ciudad, tipo)
+    SELECT DISTINCT ON (identifier)
+      identifier, name, city_name, company_type_code
+    FROM winning_party
+    WHERE identifier IS NOT NULL
+    ORDER BY identifier,
+      CASE WHEN name ~* '^U\.?T\.?E\.?\s' THEN 1 ELSE 0 END,
+      length(name) DESC NULLS LAST
+    ON CONFLICT (nif) DO NOTHING;
+  END IF;
+END $$;
 
 -- =================================================================
 -- MATERIALIZED VIEW: mv_licitacion
