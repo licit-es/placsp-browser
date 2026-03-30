@@ -217,7 +217,7 @@ class TestLocalFeedTransport:
         content = b"<feed><entry>test</entry></feed>"
         (tmp_path / "root.atom").write_bytes(content)
 
-        transport = LocalFeedTransport()
+        transport = LocalFeedTransport(tmp_path)
         base = tmp_path.as_uri() + "/"
         async with httpx.AsyncClient(base_url=base, transport=transport) as client:
             resp = await client.get("root.atom")
@@ -227,7 +227,7 @@ class TestLocalFeedTransport:
 
     @pytest.mark.asyncio
     async def test_missing_file_returns_empty_feed(self, tmp_path: Path) -> None:
-        transport = LocalFeedTransport()
+        transport = LocalFeedTransport(tmp_path)
         base = tmp_path.as_uri() + "/"
         async with httpx.AsyncClient(base_url=base, transport=transport) as client:
             resp = await client.get("nonexistent.atom")
@@ -240,10 +240,25 @@ class TestLocalFeedTransport:
         (tmp_path / "page1.atom").write_bytes(b"<page1/>")
         (tmp_path / "page2.atom").write_bytes(b"<page2/>")
 
-        transport = LocalFeedTransport()
+        transport = LocalFeedTransport(tmp_path)
         base = tmp_path.as_uri() + "/"
         async with httpx.AsyncClient(base_url=base, transport=transport) as client:
             r1 = await client.get("page1.atom")
             assert r1.content == b"<page1/>"
             r2 = await client.get("page2.atom")
             assert r2.content == b"<page2/>"
+
+    @pytest.mark.asyncio
+    async def test_resolves_absolute_url_by_filename(self, tmp_path: Path) -> None:
+        content = b"<feed><entry>abs</entry></feed>"
+        (tmp_path / "page.atom").write_bytes(content)
+
+        transport = LocalFeedTransport(tmp_path)
+        base = tmp_path.as_uri() + "/"
+        async with httpx.AsyncClient(base_url=base, transport=transport) as client:
+            resp = await client.get(
+                "https://contrataciondelestado.es/sindicacion/sindicacion_643/page.atom"
+            )
+
+        assert resp.status_code == 200
+        assert resp.content == content

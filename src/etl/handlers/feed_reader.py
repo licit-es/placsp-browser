@@ -50,14 +50,24 @@ class LocalFeedTransport(httpx.AsyncBaseTransport):
 
     Use with ``base_url`` set to the year directory as a file:// URI
     so that relative filenames from ``<link rel="next">`` resolve
-    correctly.
+    correctly.  Newer PLACSP zips use absolute URLs in next links;
+    the *base_dir* fallback resolves those by filename.
     """
+
+    def __init__(self, base_dir: Path) -> None:
+        self._base_dir = base_dir
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         path = Path(urllib.parse.unquote(request.url.path))
         if not path.exists():
-            logger.debug("Local file not found: %s", path)
-            return httpx.Response(200, content=_EMPTY_FEED)
+            # Absolute URLs (https://contrataciondelestado.es/…) won't
+            # resolve to a local path.  Fall back to filename-only lookup.
+            alt = self._base_dir / path.name
+            if alt.exists():
+                path = alt
+            else:
+                logger.info("Local file not found (cross-zip boundary): %s", path)
+                return httpx.Response(200, content=_EMPTY_FEED)
         content = path.read_bytes()
         logger.debug("File read path=%s size=%d bytes", path, len(content))
         return httpx.Response(200, content=content)
@@ -79,8 +89,9 @@ async def _download_and_extract(
     year_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info("Downloading feed_type=%s year=%d url=%s", feed_type, year, url)
+    timeout = httpx.Timeout(connect=30.0, read=120.0, write=30.0, pool=30.0)
     async with (
-        httpx.AsyncClient(follow_redirects=True, timeout=300.0) as http,
+        httpx.AsyncClient(follow_redirects=True, timeout=timeout) as http,
         http.stream("GET", url) as resp,
     ):
         resp.raise_for_status()
@@ -211,9 +222,12 @@ def _make_http_client(
     Returns (http_client, start_url, cleanup_dir).
     """
     if seed_dir is not None:
-        base_url = seed_dir.resolve().as_uri() + "/"
+        resolved = seed_dir.resolve()
+        base_url = resolved.as_uri() + "/"
         return (
-            httpx.AsyncClient(transport=LocalFeedTransport(), base_url=base_url),
+            httpx.AsyncClient(
+                transport=LocalFeedTransport(resolved), base_url=base_url
+            ),
             ROOT_FILENAMES[feed_type],
             seed_dir,
         )
@@ -221,7 +235,9 @@ def _make_http_client(
         year_path = (Path(local_dir) / feed_type / str(year)).resolve()
         base_url = year_path.as_uri() + "/"
         return (
-            httpx.AsyncClient(transport=LocalFeedTransport(), base_url=base_url),
+            httpx.AsyncClient(
+                transport=LocalFeedTransport(year_path), base_url=base_url
+            ),
             ROOT_FILENAMES[feed_type],
             None,
         )
@@ -244,14 +260,13 @@ async def _sync_one_pair(
         seed_dir = tmp_base / feed_type / str(year)
         try:
             await _download_and_extract(feed_type, year, seed_dir)
-        except (httpx.HTTPStatusError, httpx.TransportError) as exc:
-            logger.warning(
-                "Download failed feed_type=%s year=%d: %s",
+        except (httpx.HTTPStatusError, httpx.TransportError):
+            logger.exception(
+                "Seed download FAILED feed_type=%s year=%d",
                 feed_type,
                 year,
-                exc,
             )
-            return SyncResult(processed=0, skipped_stale=0, failed=0, pages=0)
+            raise
 
     http, start_url, cleanup_dir = _make_http_client(
         feed_type,
@@ -270,11 +285,13 @@ async def _sync_one_pair(
                 http_client=http,
                 config=config,
             )
+            is_local = seed_dir is not None or event.get("local_dir")
             return await svc.sync(
                 feed_type=feed_type,
                 year=year,
                 start_url=start_url,
                 end_date=event.get("end_date"),
+                skip_stale_check=bool(is_local),
             )
     finally:
         if cleanup_dir is not None:

@@ -60,10 +60,14 @@ class FeedReaderService:
         year: int = 0,
         start_url: str | None = None,
         end_date: datetime | None = None,
+        *,
+        skip_stale_check: bool = False,
     ) -> SyncResult:
         logger.info("Sync start feed_type=%s year=%d", feed_type, year)
         try:
-            return await self._sync_loop(feed_type, year, start_url, end_date)
+            return await self._sync_loop(
+                feed_type, year, start_url, end_date, skip_stale_check
+            )
         except Exception:
             logger.error(
                 "Sync failed feed_type=%s year=%d", feed_type, year, exc_info=True
@@ -76,6 +80,7 @@ class FeedReaderService:
         year: int,
         start_url: str | None,
         end_date: datetime | None,
+        skip_stale_check: bool = False,
     ) -> SyncResult:
         url: str | None = await self._resolve_start_url(feed_type, year, start_url)
 
@@ -84,7 +89,7 @@ class FeedReaderService:
         failed = 0
         pages = 0
         consecutive_stale_pages = 0
-        max_stale_pages = 3
+        max_stale_pages = 0 if skip_stale_check else 3
 
         while url:
             logger.info("Page fetch url=%s", url)
@@ -148,7 +153,7 @@ class FeedReaderService:
             if not page.next_link:
                 logger.info("Pagination stop reason=no_next_link")
                 url = None
-            elif consecutive_stale_pages >= max_stale_pages:
+            elif max_stale_pages and consecutive_stale_pages >= max_stale_pages:
                 logger.info(
                     "Pagination stop reason=all_stale consecutive_pages=%d",
                     consecutive_stale_pages,
