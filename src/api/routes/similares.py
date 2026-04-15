@@ -5,12 +5,15 @@ from __future__ import annotations
 from uuid import UUID
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import Response
 
 from api.auth import get_current_user
 from api.deps import get_conn
 from api.inteligencia.estadisticas import confidence
 from api.inteligencia.similares import IntelligenceResult, compute_intelligence
+from api.render import MARKDOWN_RESPONSES, negotiate
+from api.renderers.markdown import render_similares_md
 from api.schemas import DISPLAY_COLS, LICITACION_VIEW
 from api.schemas.similares import (
     AdjudicatarioFrecuente,
@@ -27,22 +30,26 @@ router = APIRouter(tags=["Similares"])
 @router.get(
     "/similares/{licitacion_id}",
     response_model=RespuestaSimilares,
+    responses=MARKDOWN_RESPONSES,
     summary="Licitaciones similares con inteligencia competitiva",
 )
 async def get_similares(
+    request: Request,
     licitacion_id: UUID,
     conn: asyncpg.Connection = Depends(get_conn),
     _user: asyncpg.Record = Depends(get_current_user),
     estado: str | None = Query(None, description="Filtrar por estado"),
     limit: int = Query(10, ge=1, le=50),
-) -> RespuestaSimilares:
+) -> Response:
     """Find structurally similar tenders and return market intelligence."""
     intel = await compute_intelligence(conn, licitacion_id)
     if intel is None:
         raise HTTPException(status_code=404, detail="Licitacion no encontrada")
 
     if not intel.candidates:
-        return _empty_response(intel.budget_factor)
+        return negotiate(
+            request, _empty_response(intel.budget_factor), render_similares_md
+        )
 
     # Pick top N candidates by similitud for display.
     display_candidates = intel.candidates[:limit]
@@ -91,7 +98,7 @@ async def get_similares(
             mediana=intel.competition.mediana,
         )
 
-    return RespuestaSimilares(
+    data = RespuestaSimilares(
         resultados=resultados,
         estadisticas=EstadisticasSimilares(
             n=intel.pool_size,
@@ -110,6 +117,7 @@ async def get_similares(
             factor_presupuesto=intel.budget_factor,
         ),
     )
+    return negotiate(request, data, render_similares_md)
 
 
 # -------------------------------------------------------------------

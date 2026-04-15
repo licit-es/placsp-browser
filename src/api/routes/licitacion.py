@@ -6,10 +6,13 @@ from collections import defaultdict
 from uuid import UUID
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import Response
 
 from api.auth import get_current_user
 from api.deps import get_conn
+from api.render import MARKDOWN_RESPONSES, negotiate
+from api.renderers.markdown import render_licitacion_md
 from api.schemas import (
     LICITACION_VIEW,
     AdjudicatarioInfo,
@@ -28,13 +31,15 @@ router = APIRouter(tags=["Licitaciones"])
 @router.get(
     "/licitacion/{licitacion_id}",
     response_model=LicitacionDetalle,
+    responses=MARKDOWN_RESPONSES,
     summary="Detalle completo de una licitacion",
 )
 async def get_licitacion(
+    request: Request,
     licitacion_id: UUID,
     conn: asyncpg.Connection = Depends(get_conn),
     _user: asyncpg.Record = Depends(get_current_user),
-) -> LicitacionDetalle:
+) -> Response:
     """Return full tender detail with nested criterios, solvencia, lotes, docs."""
     row = await conn.fetchrow(
         f"SELECT * FROM {LICITACION_VIEW} WHERE id = $1", licitacion_id
@@ -153,7 +158,7 @@ async def get_licitacion(
             tipo=row["organo_tipo"],
         )
 
-    return LicitacionDetalle(
+    data = LicitacionDetalle(
         id=row["id"],
         expediente=row["expediente"],
         titulo=row["titulo"],
@@ -187,3 +192,4 @@ async def get_licitacion(
         documentos=[Documento(**dict(r)) for r in docs_rows],
         historial_estados=row["historial_estados"] or [],
     )
+    return negotiate(request, data, render_licitacion_md)

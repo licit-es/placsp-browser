@@ -7,10 +7,13 @@ from decimal import Decimal
 
 import asyncpg
 from fastapi import APIRouter, Depends, Request
+from fastapi.responses import Response
 
 from api.auth import get_current_user
 from api.catalogs import to_codes
 from api.deps import get_conn
+from api.render import MARKDOWN_RESPONSES, negotiate
+from api.renderers.markdown import render_busqueda_md
 from api.schemas import (
     DISPLAY_COLS,
     LICITACION_VIEW,
@@ -220,6 +223,7 @@ def _row_to_resumen(
 @router.post(
     "/buscar",
     response_model=RespuestaBusqueda,
+    responses=MARKDOWN_RESPONSES,
     summary="Busqueda unificada de licitaciones",
 )
 async def buscar(
@@ -227,7 +231,7 @@ async def buscar(
     request: Request,
     conn: asyncpg.Connection = Depends(get_conn),
     _user: asyncpg.Record = Depends(get_current_user),
-) -> RespuestaBusqueda:
+) -> Response:
     """Unified search: free text + structured filters, cursor pagination."""
     request.state.search_params = body.model_dump(exclude_none=True)
     conditions: list[str] = []
@@ -303,8 +307,9 @@ async def buscar(
         elif sort_key == "relevancia":
             cursor_siguiente = encode_cursor(last["rank"], last["id"])
 
-    return RespuestaBusqueda(
+    data = RespuestaBusqueda(
         total=total or 0,
         resultados=resultados,
         cursor_siguiente=cursor_siguiente,
     )
+    return negotiate(request, data, render_busqueda_md)

@@ -5,10 +5,13 @@ from __future__ import annotations
 from datetime import datetime
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import Response
 
 from api.auth import get_current_user
 from api.deps import get_conn
+from api.render import MARKDOWN_RESPONSES, negotiate
+from api.renderers.markdown import render_empresa_md, render_empresas_md
 from api.schemas import (
     DISPLAY_COLS,
     LICITACION_VIEW,
@@ -27,13 +30,15 @@ router = APIRouter(tags=["Empresas"])
 @router.post(
     "/empresas",
     response_model=list[EmpresaResumen],
+    responses=MARKDOWN_RESPONSES,
     summary="Buscar empresas adjudicatarias",
 )
 async def buscar_empresas(
+    request: Request,
     body: PeticionBusquedaEmpresas,
     conn: asyncpg.Connection = Depends(get_conn),
     _user: asyncpg.Record = Depends(get_current_user),
-) -> list[EmpresaResumen]:
+) -> Response:
     """Search companies by name, NIF or city."""
     rows = await conn.fetch(
         """
@@ -51,7 +56,7 @@ async def buscar_empresas(
         body.q,
         body.limite,
     )
-    return [
+    data = [
         EmpresaResumen(
             id=r["nif"],
             nombre=r["nombre"],
@@ -59,20 +64,23 @@ async def buscar_empresas(
         )
         for r in rows
     ]
+    return negotiate(request, data, render_empresas_md)
 
 
 @router.get(
     "/empresa/{empresa_id}",
     response_model=EmpresaDetalle,
+    responses=MARKDOWN_RESPONSES,
     summary="Perfil de empresa adjudicataria",
 )
 async def get_empresa(
+    request: Request,
     empresa_id: str,
     conn: asyncpg.Connection = Depends(get_conn),
     _user: asyncpg.Record = Depends(get_current_user),
     limit: int = Query(20, ge=1, le=100, description="Resultados por pagina."),
     cursor: str | None = Query(None, description="Cursor de paginacion."),
-) -> EmpresaDetalle:
+) -> Response:
     """Company profile with aggregated stats and paginated adjudications."""
     stats_row = await conn.fetchrow(
         """
@@ -147,7 +155,7 @@ async def get_empresa(
         last = rows[-1]
         cursor_siguiente = encode_cursor(last["fecha_actualizacion"], last["id"])
 
-    return EmpresaDetalle(
+    data = EmpresaDetalle(
         id=empresa_id,
         nombre=stats_row["nombre"],
         stats=EmpresaStats(
@@ -165,3 +173,4 @@ async def get_empresa(
         adjudicaciones=[LicitacionResumen.from_row(r) for r in rows],
         cursor_siguiente=cursor_siguiente,
     )
+    return negotiate(request, data, render_empresa_md)

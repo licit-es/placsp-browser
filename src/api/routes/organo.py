@@ -6,10 +6,13 @@ from datetime import datetime
 from uuid import UUID
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import Response
 
 from api.auth import get_current_user
 from api.deps import get_conn
+from api.render import MARKDOWN_RESPONSES, negotiate
+from api.renderers.markdown import render_organo_md, render_organos_md
 from api.schemas import (
     DISPLAY_COLS,
     LICITACION_VIEW,
@@ -28,13 +31,15 @@ router = APIRouter(tags=["Organos"])
 @router.post(
     "/organos",
     response_model=list[OrganoResumen],
+    responses=MARKDOWN_RESPONSES,
     summary="Buscar organos de contratacion",
 )
 async def buscar_organos(
+    request: Request,
     body: PeticionBusquedaOrganos,
     conn: asyncpg.Connection = Depends(get_conn),
     _user: asyncpg.Record = Depends(get_current_user),
-) -> list[OrganoResumen]:
+) -> Response:
     """Search contracting bodies by name, NIF or DIR3."""
     rows = await conn.fetch(
         """
@@ -52,7 +57,7 @@ async def buscar_organos(
         body.q,
         body.limite,
     )
-    return [
+    data = [
         OrganoResumen(
             id=r["id"],
             nombre=r["name"],
@@ -61,20 +66,23 @@ async def buscar_organos(
         )
         for r in rows
     ]
+    return negotiate(request, data, render_organos_md)
 
 
 @router.get(
     "/organo/{organo_id}",
     response_model=OrganoDetalle,
+    responses=MARKDOWN_RESPONSES,
     summary="Perfil de organo de contratacion",
 )
 async def get_organo(
+    request: Request,
     organo_id: UUID,
     conn: asyncpg.Connection = Depends(get_conn),
     _user: asyncpg.Record = Depends(get_current_user),
     limit: int = Query(20, ge=1, le=100, description="Resultados por pagina."),
     cursor: str | None = Query(None, description="Cursor de paginacion."),
-) -> OrganoDetalle:
+) -> Response:
     """Contracting body profile with stats and paginated tenders."""
     org = await conn.fetchrow(
         "SELECT organo_id, organo, organo_nif, organo_tipo"
@@ -141,7 +149,7 @@ async def get_organo(
 
     plazo = stats_row["plazo_medio"] if stats_row else None
 
-    return OrganoDetalle(
+    data = OrganoDetalle(
         id=org["organo_id"],
         nombre=org["organo"],
         nif=org["organo_nif"],
@@ -155,3 +163,4 @@ async def get_organo(
         licitaciones=[LicitacionResumen.from_row(r) for r in rows],
         cursor_siguiente=cursor_siguiente,
     )
+    return negotiate(request, data, render_organo_md)
